@@ -1,0 +1,41 @@
+:root {
+  --el-color-primary: #D44665;
+  /* lighter tones */
+  --el-color-primary-light-1: #da5975;
+  --el-color-primary-light-2: #de6b84;
+  --el-color-primary-light-3: #e27088;
+  --el-color-primary-light-4: #e67a92;
+  --el-color-primary-light-5: #ea93a5;
+  --el-color-primary-light-6: #efacb9;
+  --el-color-primary-light-7: #f1b7c2;
+  --el-color-primary-light-8: #f5c9d1;
+  --el-color-primary-light-9: #fae0e6;
+  /* darker tones */
+  --el-color-primary-dark-1: #be3e5b;
+  --el-color-primary-dark-2: #ab384f;
+  --brand-gradient: linear-gradient(135deg, #D44665 0%, #e27088 100%);
+}
+
+body {
+  background: #fafafa;
+}
+
+.el-page-header__content { color: var(--el-color-primary); font-weight: 700; }
+.el-page-header { background:#fff; border-radius:8px; padding:8px 12px; }
+
+.el-card { border-radius: 8px; }
+.el-card__header { color: var(--el-color-primary-dark-1); font-weight: 600; }
+
+/* Buttons adopt gradient on hover */
+.el-button--primary {
+  --el-button-bg-color: var(--el-color-primary);
+  --el-button-border-color: var(--el-color-primary);
+}
+.el-button--primary:hover { background-image: var(--brand-gradient); border-color: transparent; }
+
+/* Utility */
+.brand-gradient { background-image: var(--brand-gradient); color:#fff; }
+
+
+
+

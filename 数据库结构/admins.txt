@@ -1,0 +1,5 @@
+"id"	"name"	"phone_number"	"email"	"password"	"admin_type"
+"ADMIN001"	"王宿管"	"13900139001"	"admin1@example.com"	"$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"	"宿管员"
+"ADMIN002"	"管理员2"	"13900139002"	"dmin2@example.com"	"$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"	"宿管员"
+"ADMIN003"	"王管理员"	"13800138003"	"admin3@ihome.com"	"$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"	"宿管员"
+"ADMIN004"	"测试管理员"	"13900000000"	"test@example.com"	"$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi"	"系统管理员"

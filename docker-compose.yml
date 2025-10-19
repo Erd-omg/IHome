@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # MySQL数据库服务
+  mysql:
+    image: mysql:8.0
+    container_name: ihome-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ihome_root_password
+      MYSQL_DATABASE: ihome
+      MYSQL_USER: ihome_user
+      MYSQL_PASSWORD: ihome_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/src/main/resources/db-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./backend/src/main/resources/mock-data-complete.sql:/docker-entrypoint-initdb.d/02-data.sql
+    command: --default-authentication-plugin=mysql_native_password
+    networks:
+      - ihome-network
+
+  # 后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ihome-backend
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ihome?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true
+      SPRING_DATASOURCE_USERNAME: ihome_user
+      SPRING_DATASOURCE_PASSWORD: ihome_password
+      JWT_SECRET: ihome-dormitory-management-system-secret-key-2024-very-long-and-secure
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - ihome-network
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ihome-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_BASE: http://localhost:8080/api
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - ihome-network
+
+volumes:
+  mysql_data:
+
+networks:
+  ihome-network:
+    driver: bridge

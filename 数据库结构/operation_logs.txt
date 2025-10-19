@@ -1,0 +1,75 @@
+"id"	"user_id"	"user_type"	"user_name"	"module"	"operation_type"	"description"	"method"	"request_url"	"request_params"	"response_result"	"ip_address"	"user_agent"	"status"	"error_message"	"execution_time"	"operation_time"	"created_at"
+"1"				"学生管理"	"QUERY"	"学生登录"	"POST"	"http://localhost:8080/api/students/login"	"[{""id"":""2024001"",""password"":""password""}]"		"0:0:0:0:0:0:0:1"	"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"	"FAILURE"	"
+### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: Unknown column 'grade' in 'field list'
+### The error may exist in com/ihome/mapper/StudentMapper.java (best guess)
+### The error may involve defaultParameterMap
+### The error occurred while setting parameters
+### SQL: SELECT id,name,phone_number,email,password,gender,college,major,grade,phone,status,created_at FROM students WHERE id=?
+### Cause: java.sql.SQLSyntaxErrorException: Unknown column 'grade' in 'field list'
+; bad SQL grammar []"	"744"	"15/10/2025 18:30:58"	"15/10/2025 18:30:58"
+"2"				"学生管理"	"QUERY"	"学生登录"	"POST"	"http://localhost:8080/api/students/login"	"[{""id"":""2024001"",""password"":""password""}]"		"0:0:0:0:0:0:0:1"	"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"	"FAILURE"	"
+### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: Unknown column 'grade' in 'field list'
+### The error may exist in com/ihome/mapper/StudentMapper.java (best guess)
+### The error may involve defaultParameterMap
+### The error occurred while setting parameters
+### SQL: SELECT id,name,phone_number,email,password,gender,college,major,grade,phone,status,created_at FROM students WHERE id=?
+### Cause: java.sql.SQLSyntaxErrorException: Unknown column 'grade' in 'field list'
+; bad SQL grammar []"	"11"	"15/10/2025 18:32:44"	"15/10/2025 18:32:44"
+"3"				"管理员管理"	"QUERY"	"管理员登录"	"POST"	"http://localhost:8080/api/admin/login"	"[{""id"":""ADMIN001"",""password"":""password""}]"	"{""code"":0,""message"":""success"",""data"":{""accessToken"":""eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyVHlwZSI6ImFkbWluIiwidG9rZW5UeXBlIjoiYWNjZXNzIiwidXNlcklkIjoiQURNSU4wMDEiLCJzdWIiOiJBRE1JTjAwMSIsImlhdCI6MTc2MDUyNDQxNywiZXhwIjoxNzYwNTI1MDE3fQ.oSYmhShgZiCGe_jB42rYPeCgIRLVoi_FwdZ83RAGDPOF4PBlnDGUhKVhXJZ9ftziEc97yS1O5riotIqC5WKw5w"",""refreshToken"":""eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyVHlwZSI6ImFkbWluIiwidG9rZW5UeXBlIjoicmVmcmVzaCIsInVzZXJJZCI6IkFETUlOMDAxIiwic3ViIjoiQURNSU4wMDEiLCJpYXQiOjE3NjA1MjQ0MTcsImV4cCI6MTc2MTEyOTIxN30.Ux2HMpm7gk0bFWviJNxANk8-ASkca6NVjPf_Ga_-bAdt4qB2DvDaNurIMmkyx7qxZ6QxR42LXX4i890-hZoJKA"",""tokenType"":""Bearer"",""expiresIn"":600,""userInfo"":{""id"":""ADMIN001"",""name"":""王宿管"",""phoneNumber"":""13900139001"",""email"":""admin1@example.com"",""password"":null,""adminType"":""宿管员""}}}"	"0:0:0:0:0:0:0:1"	"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"	"SUCCESS"		"146"	"15/10/2025 18:33:37"	"15/10/2025 18:33:37"
+"4"				"学生管理"	"QUERY"	"学生登录"	"POST"	"http://localhost:8080/api/students/login"	"[{""id"":""2024001"",""password"":""password""}]"		"0:0:0:0:0:0:0:1"	"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"	"FAILURE"	"
+### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+### The error may exist in com/ihome/mapper/StudentMapper.java (best guess)
+### The error may involve defaultParameterMap
+### The error occurred while setting parameters
+### SQL: SELECT id,name,phone_number,email,password,gender,college,major,grade,phone,status,created_at FROM students WHERE id=?
+### Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+; bad SQL grammar []"	"462"	"15/10/2025 18:43:06"	"15/10/2025 18:43:06"
+"5"				"学生管理"	"QUERY"	"学生登录"	"POST"	"http://localhost:8080/api/students/login"	"[{""id"":""2024001"",""password"":""password""}]"		"0:0:0:0:0:0:0:1"	"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"	"FAILURE"	"
+### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+### The error may exist in com/ihome/mapper/StudentMapper.java (best guess)
+### The error may involve defaultParameterMap
+### The error occurred while setting parameters
+### SQL: SELECT id,name,phone_number,email,password,gender,college,major,grade,phone,status,created_at FROM students WHERE id=?
+### Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+; bad SQL grammar []"	"8"	"15/10/2025 18:43:25"	"15/10/2025 18:43:25"
+"6"				"学生管理"	"QUERY"	"学生登录"	"POST"	"http://localhost:8080/api/students/login"	"[{""id"":""2024001"",""password"":""password""}]"		"0:0:0:0:0:0:0:1"	"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"	"FAILURE"	"
+### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+### The error may exist in com/ihome/mapper/StudentMapper.java (best guess)
+### The error may involve defaultParameterMap
+### The error occurred while setting parameters
+### SQL: SELECT id,name,phone_number,email,password,gender,college,major,grade,phone,status,created_at FROM students WHERE id=?
+### Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+; bad SQL grammar []"	"6"	"15/10/2025 18:43:51"	"15/10/2025 18:43:51"
+"7"				"管理员管理"	"QUERY"	"管理员登录"	"POST"	"http://localhost:8080/api/admin/login"	"[{""id"":""ADMIN001"",""password"":""password""}]"	"{""code"":0,""message"":""success"",""data"":{""accessToken"":""eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyVHlwZSI6ImFkbWluIiwidG9rZW5UeXBlIjoiYWNjZXNzIiwidXNlcklkIjoiQURNSU4wMDEiLCJzdWIiOiJBRE1JTjAwMSIsImlhdCI6MTc2MDUyNTA4NCwiZXhwIjoxNzYwNTI1Njg0fQ.4HJ_actVbng1ZISFvkkixcOuH7sKY_KWed8Wo1mind5KxySH64i55su5yEPxhtmImyIBzXeQwjMI6elANXIM2Q"",""refreshToken"":""eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyVHlwZSI6ImFkbWluIiwidG9rZW5UeXBlIjoicmVmcmVzaCIsInVzZXJJZCI6IkFETUlOMDAxIiwic3ViIjoiQURNSU4wMDEiLCJpYXQiOjE3NjA1MjUwODQsImV4cCI6MTc2MTEyOTg4NH0.C-YfiTkZyNngjoT6Rwv6MlpE4nUjldJAkCHbUU8PMAJvO4lcTZ8hmAygnWZ9pLbup-flwhO8tsZjUNAGHxqncA"",""tokenType"":""Bearer"",""expiresIn"":600,""userInfo"":{""id"":""ADMIN001"",""name"":""王宿管"",""phoneNumber"":""13900139001"",""email"":""admin1@example.com"",""password"":null,""adminType"":""宿管员""}}}"	"0:0:0:0:0:0:0:1"	"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"	"SUCCESS"		"121"	"15/10/2025 18:44:44"	"15/10/2025 18:44:44"
+"8"				"学生管理"	"QUERY"	"学生登录"	"POST"	"http://localhost:8080/api/students/login"	"[{""id"":""2024001"",""password"":""password""}]"		"0:0:0:0:0:0:0:1"	"Mozilla/5.0 (Windows NT; Windows NT 10.0; zh-CN) WindowsPowerShell/5.1.26100.6725"	"FAILURE"	"
+### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+### The error may exist in com/ihome/mapper/StudentMapper.java (best guess)
+### The error may involve defaultParameterMap
+### The error occurred while setting parameters
+### SQL: SELECT id,name,phone_number,email,password,gender,college,major,grade,phone,status,created_at FROM students WHERE id=?
+### Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+; bad SQL grammar []"	"497"	"15/10/2025 18:48:11"	"15/10/2025 18:48:12"
+"9"				"学生管理"	"QUERY"	"学生登录"	"POST"	"http://localhost:8080/api/students/login"	"[{""id"":""2024001"",""password"":""password""}]"		"0:0:0:0:0:0:0:1"	"Mozilla/5.0 (Windows NT; Windows NT 10.0; zh-CN) WindowsPowerShell/5.1.26100.6725"	"FAILURE"	"
+### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+### The error may exist in com/ihome/mapper/StudentMapper.java (best guess)
+### The error may involve defaultParameterMap
+### The error occurred while setting parameters
+### SQL: SELECT id,name,phone_number,email,password,gender,college,major,grade,phone,status,created_at FROM students WHERE id=?
+### Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+; bad SQL grammar []"	"3"	"15/10/2025 18:49:28"	"15/10/2025 18:49:28"
+"10"				"学生管理"	"QUERY"	"学生登录"	"POST"	"http://localhost:8080/api/students/login"	"[{""id"":""2024001"",""password"":""password""}]"		"0:0:0:0:0:0:0:1"	"Mozilla/5.0 (Windows NT; Windows NT 10.0; zh-CN) WindowsPowerShell/5.1.26100.6725"	"FAILURE"	"
+### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+### The error may exist in com/ihome/mapper/StudentMapper.java (best guess)
+### The error may involve defaultParameterMap
+### The error occurred while setting parameters
+### SQL: SELECT id,name,phone_number,email,password,gender,college,major,grade,phone,status,created_at FROM students WHERE id=?
+### Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+; bad SQL grammar []"	"484"	"15/10/2025 18:50:40"	"15/10/2025 18:50:40"
+"11"				"学生管理"	"QUERY"	"学生登录"	"POST"	"http://localhost:8080/api/students/login"	"[{""id"":""2024001"",""password"":""password""}]"		"0:0:0:0:0:0:0:1"	"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0"	"FAILURE"	"
+### Error querying database.  Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+### The error may exist in com/ihome/mapper/StudentMapper.java (best guess)
+### The error may involve defaultParameterMap
+### The error occurred while setting parameters
+### SQL: SELECT id,name,phone_number,email,password,gender,college,major,grade,phone,status,created_at FROM students WHERE id=?
+### Cause: java.sql.SQLSyntaxErrorException: Unknown column 'created_at' in 'field list'
+; bad SQL grammar []"	"320"	"15/10/2025 18:53:38"	"15/10/2025 18:53:38"
