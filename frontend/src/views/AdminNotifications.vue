@@ -67,11 +67,43 @@
         </el-form>
       </div>
 
+      <!-- 批量操作工具栏 -->
+      <div v-if="selectedNotifications.length > 0" class="batch-actions">
+        <el-alert
+          :title="`已选择 ${selectedNotifications.length} 条通知`"
+          type="info"
+          :closable="false"
+          show-icon
+        >
+          <template #default>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span>已选择 <strong>{{ selectedNotifications.length }}</strong> 条通知</span>
+              <el-button 
+                type="danger" 
+                size="small" 
+                @click="batchDeleteNotifications"
+                :loading="batchDeleting"
+              >
+                批量删除
+              </el-button>
+              <el-button 
+                size="small" 
+                @click="clearSelection"
+              >
+                取消选择
+              </el-button>
+            </div>
+          </template>
+        </el-alert>
+      </div>
+
       <!-- 通知列表 -->
       <el-table 
+        ref="notificationTableRef"
         :data="notifications" 
         v-loading="loading"
         @selection-change="handleSelectionChange"
+        @sort-change="handleSortChange"
       >
         <el-table-column type="selection" width="55" />
         <el-table-column prop="title" label="标题" min-width="200" />
@@ -104,7 +136,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="160">
+        <el-table-column prop="createTime" label="创建时间" width="160" sortable="custom">
           <template #default="{ row }">
             {{ formatDateTime(row.createTime) }}
           </template>
@@ -230,6 +262,7 @@ import api from '../api'
 // 响应式数据
 const loading = ref(false)
 const sending = ref(false)
+const batchDeleting = ref(false)
 const showCreateDialog = ref(false)
 const showViewDialog = ref(false)
 const notifications = ref<any[]>([])
@@ -256,6 +289,12 @@ const filterForm = reactive({
   type: '',
   priority: '',
   receiverType: ''
+})
+
+// 排序参数
+const sortParams = reactive({
+  sortBy: '',
+  sortOrder: ''
 })
 
 // 通知表单
@@ -353,11 +392,16 @@ const formatDateTime = (dateTime: string) => {
 const loadNotifications = async () => {
   loading.value = true
   try {
-    const { data } = await api.adminNotifications({
+    const params: any = {
       page: pagination.page,
       size: pagination.size,
       ...filterForm
-    })
+    }
+    // 添加排序参数
+    if (sortParams.sortBy) {
+      params.sort = `${sortParams.sortBy},${sortParams.sortOrder}`
+    }
+    const { data } = await api.adminNotifications(params)
     const response = data.data
     notifications.value = response.content || []
     pagination.total = response.totalElements || 0
@@ -385,9 +429,79 @@ const handleSelectionChange = (selection: any[]) => {
   selectedNotifications.value = selection
 }
 
+const notificationTableRef = ref()
+
+// 清除选择
+const clearSelection = () => {
+  selectedNotifications.value = []
+  // 使用Element Plus表格的clearSelection方法
+  if (notificationTableRef.value) {
+    notificationTableRef.value.clearSelection()
+  }
+}
+
+// 批量删除通知
+const batchDeleteNotifications = async () => {
+  if (selectedNotifications.value.length === 0) {
+    ElMessage.warning('请选择要删除的通知')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedNotifications.value.length} 条通知吗？`,
+      '确认批量删除',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+
+    batchDeleting.value = true
+    const ids = selectedNotifications.value.map(n => n.id)
+    const { data } = await api.batchDeleteNotificationsAdmin(ids)
+    
+    const result = data.data || data
+    if (result.success) {
+      ElMessage.success(result.message || `成功删除 ${result.successCount} 条通知`)
+      // 清除选择
+      clearSelection()
+      // 重新加载列表
+      loadNotifications()
+      loadStats()
+    } else {
+      ElMessage.warning(result.message || `部分通知删除失败，成功 ${result.successCount} 条，失败 ${result.failCount} 条`)
+      // 仍然重新加载列表以反映已删除的通知
+      loadNotifications()
+      loadStats()
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      console.error('批量删除通知失败:', error)
+      ElMessage.error(error.message || '批量删除失败')
+    }
+  } finally {
+    batchDeleting.value = false
+  }
+}
+
 // 处理分页大小变化
 const handleSizeChange = (size: number) => {
   pagination.size = size
+  pagination.page = 1
+  loadNotifications()
+}
+
+// 处理排序变化
+const handleSortChange = ({ prop, order }: { prop: string; order: string | null }) => {
+  if (order) {
+    sortParams.sortBy = prop
+    sortParams.sortOrder = order === 'ascending' ? 'asc' : 'desc'
+  } else {
+    sortParams.sortBy = ''
+    sortParams.sortOrder = ''
+  }
   pagination.page = 1
   loadNotifications()
 }
@@ -542,6 +656,10 @@ onMounted(() => {
   padding: 16px;
   background-color: #fafafa;
   border-radius: 4px;
+}
+
+.batch-actions {
+  margin-bottom: 16px;
 }
 
 .pagination {

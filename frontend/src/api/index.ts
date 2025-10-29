@@ -119,7 +119,8 @@ export const api = {
   createNotification: (notification: any) => http.post('/notifications/create', notification),
   sendSystemNotification: (request: any) => http.post('/notifications/send-system', request),
   cleanExpiredNotifications: () => http.post('/notifications/clean-expired'),
-  deleteNotificationAdmin: (notificationId: number) => http.delete(`/admin/notifications/${notificationId}`)
+  deleteNotificationAdmin: (notificationId: number) => http.delete(`/admin/notifications/${notificationId}`),
+  batchDeleteNotificationsAdmin: (ids: number[]) => http.delete('/admin/notifications/batch', { data: ids })
 }
 
 export default api

@@ -11,8 +11,8 @@
         <el-button type="primary" @click="load">查询</el-button>
         <el-button @click="handleReset">重置</el-button>
       </div>
-      <el-table :data="rows" v-loading="loading">
-        <el-table-column prop="applicantId" label="申请人学号" width="140" />
+      <el-table :data="rows" v-loading="loading" @sort-change="handleSortChange">
+        <el-table-column prop="applicantId" label="申请人学号" width="140" sortable="custom" />
         <el-table-column prop="applicantName" label="申请人" width="120">
           <template #default="{ row }">
             {{ row.applicantName || '-' }}
@@ -84,12 +84,16 @@ const page = ref(1)
 const size = ref(10)
 const total = ref(0)
 const status = ref('')
+const sortParams = ref({ sortBy: '', sortOrder: '' })
 
 async function load() {
   loading.value = true
   try {
     const params: any = { page: page.value, size: size.value }
     if (status.value) params.status = status.value
+    if (sortParams.value.sortBy) {
+      params.sort = `${sortParams.value.sortBy},${sortParams.value.sortOrder}`
+    }
     const { data } = await api.adminListExchanges(params)
     const d = data.data
     rows.value = d.content || []
@@ -180,6 +184,19 @@ async function deleteExchange(row: any) {
 }
 
 function onSize(s: number) { size.value = s; page.value = 1; load() }
+
+// 处理排序变化
+function handleSortChange({ prop, order }: { prop: string; order: string | null }) {
+  if (order) {
+    sortParams.value.sortBy = prop
+    sortParams.value.sortOrder = order === 'ascending' ? 'asc' : 'desc'
+  } else {
+    sortParams.value.sortBy = ''
+    sortParams.value.sortOrder = ''
+  }
+  page.value = 1
+  load()
+}
 
 onMounted(load)
 </script>
