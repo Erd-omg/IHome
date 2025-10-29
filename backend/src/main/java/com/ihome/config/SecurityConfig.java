@@ -36,9 +36,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 公开接口
+                        // 公开接口 - 不需要包含 context-path，Spring Security 会自动处理
                         .requestMatchers(
-                                "/",
                                 "/health",
                                 "/swagger-ui.html", 
                                 "/swagger-ui/**", 
@@ -46,10 +45,12 @@ public class SecurityConfig {
                                 "/students/register",
                                 "/students/login",
                                 "/admin/login",
+                                "/auth/refresh",
                                 "/password/**"
                         ).permitAll()
-                        // 学生接口需要学生角色
-                        .requestMatchers("/students/**").hasRole("STUDENT")
+                        // 学生接口：登录注册公开，其他需要学生角色
+                        .requestMatchers("/students/register", "/students/login").permitAll()
+                        .requestMatchers("/students/**").hasAnyRole("STUDENT", "ADMIN")
                         // 管理员接口需要管理员角色
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         // 智能分配接口需要管理员角色
@@ -64,6 +65,12 @@ public class SecurityConfig {
                         .requestMatchers("/notifications/**").hasAnyRole("STUDENT", "ADMIN")
                         // 宿舍接口需要学生或管理员角色
                         .requestMatchers("/dorms/**").hasAnyRole("STUDENT", "ADMIN")
+                        // 维修接口需要学生或管理员角色
+                        .requestMatchers("/repairs/**").hasAnyRole("STUDENT", "ADMIN")
+                        // 生活习惯标签接口需要学生或管理员角色
+                        .requestMatchers("/lifestyle-tags/**").hasAnyRole("STUDENT", "ADMIN")
+                        // 问卷接口需要学生或管理员角色
+                        .requestMatchers("/questionnaire/**").hasAnyRole("STUDENT", "ADMIN")
                         // 其他接口需要认证
                         .anyRequest().authenticated()
                 )

@@ -191,7 +191,6 @@ public class AllocationIntegrationTest {
         dormitory.setBedCount(bedCount);
         dormitory.setCurrentOccupancy(occupancy);
         dormitory.setStatus(status);
-        dormitory.setCreatedAt(LocalDateTime.now());
         return dormitory;
     }
 
@@ -203,7 +202,6 @@ public class AllocationIntegrationTest {
         student.setMajor(major);
         student.setGrade(grade);
         student.setStatus("在校");
-        student.setCreatedAt(LocalDateTime.now());
         return student;
     }
 

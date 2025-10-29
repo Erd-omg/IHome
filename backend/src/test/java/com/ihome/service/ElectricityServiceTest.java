@@ -85,7 +85,6 @@ public class ElectricityServiceTest {
         testStudent.setGender("男");
         testStudent.setMajor("计算机科学");
         testStudent.setStatus("在校");
-        testStudent.setCreatedAt(LocalDateTime.now());
     }
 
     @Test

@@ -12,6 +12,7 @@ public class PaymentRecord {
     @TableId(type = IdType.AUTO)
     private Integer id;
     private String studentId;
+    private String paymentType;
     private BigDecimal amount;
     private String paymentMethod;
     private LocalDateTime paymentTime;
@@ -21,6 +22,8 @@ public class PaymentRecord {
     public void setId(Integer id) { this.id = id; }
     public String getStudentId() { return studentId; }
     public void setStudentId(String studentId) { this.studentId = studentId; }
+    public String getPaymentType() { return paymentType; }
+    public void setPaymentType(String paymentType) { this.paymentType = paymentType; }
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
     public String getPaymentMethod() { return paymentMethod; }

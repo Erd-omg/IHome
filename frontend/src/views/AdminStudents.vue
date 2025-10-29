@@ -5,8 +5,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span>学生管理</span>
           <div>
-            <el-button type="primary" size="small" @click="showCreateDialog = true">添加学生</el-button>
-            <el-button size="small" @click="onExport">导出CSV</el-button>
+            <el-button type="primary" size="small" @click="handleAddStudent">添加学生</el-button>
           </div>
         </div>
       </template>
@@ -68,9 +67,6 @@
         <el-form-item label="姓名" prop="name">
           <el-input v-model="studentForm.name" />
         </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="studentForm.password" type="password" show-password />
-        </el-form-item>
         <el-form-item label="性别" prop="gender">
           <el-select v-model="studentForm.gender" style="width: 100%">
             <el-option label="男" value="男" />
@@ -89,6 +85,14 @@
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="studentForm.email" />
         </el-form-item>
+        <div v-if="editingStudent" style="margin-top:20px; padding-top:20px; border-top:1px solid #eee;">
+          <el-alert type="info" :closable="false" style="margin-bottom:16px;">
+            账户默认密码为: <strong>password</strong>
+          </el-alert>
+          <el-form-item>
+            <el-button type="warning" @click="handleResetPassword">重置密码</el-button>
+          </el-form-item>
+        </div>
       </el-form>
       <template #footer>
         <el-button @click="showCreateDialog = false">取消</el-button>
@@ -102,7 +106,6 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import api from '../api'
-import { exportToCSV } from '../utils/csv'
 
 const rows = ref<any[]>([])
 const loading = ref(false)
@@ -121,7 +124,6 @@ const search = reactive({ id: '', name: '', college: '' })
 const studentForm = reactive({
   id: '',
   name: '',
-  password: '',
   gender: '',
   college: '',
   major: '',
@@ -132,7 +134,6 @@ const studentForm = reactive({
 const studentRules = {
   id: [{ required: true, message: '请输入学号', trigger: 'blur' }],
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   gender: [{ required: true, message: '请选择性别', trigger: 'change' }],
   college: [{ required: true, message: '请输入学院', trigger: 'blur' }],
   major: [{ required: true, message: '请输入专业', trigger: 'blur' }]
@@ -174,22 +175,14 @@ function onReset() {
   load() 
 }
 
-function onExport() {
-  exportToCSV('students.csv', rows.value, { 
-    id: '学号', 
-    name: '姓名', 
-    college: '学院', 
-    major: '专业',
-    gender: '性别',
-    phoneNumber: '手机号',
-    email: '邮箱'
-  })
+function handleAddStudent() {
+  resetForm()
+  showCreateDialog.value = true
 }
 
 function editStudent(student: any) {
   editingStudent.value = student
   Object.assign(studentForm, student)
-  studentForm.password = '' // 编辑时不显示密码
   showCreateDialog.value = true
 }
 
@@ -216,16 +209,13 @@ async function saveStudent() {
     
     if (editingStudent.value) {
       // 编辑学生
-      const updateData = { ...studentForm }
-      if (!updateData.password) {
-        delete updateData.password // 如果密码为空，则不更新密码
-      }
-      await api.updateStudentAdmin(editingStudent.value.id, updateData)
+      await api.updateStudentAdmin(editingStudent.value.id, studentForm)
       ElMessage.success('学生信息更新成功')
     } else {
-      // 创建学生
-      await api.createStudent(studentForm)
-      ElMessage.success('学生创建成功')
+      // 创建学生 - 默认密码为password
+      const createData = { ...studentForm, password: 'password' }
+      await api.createStudent(createData)
+      ElMessage.success('学生创建成功，默认密码为: password')
     }
     
     showCreateDialog.value = false
@@ -238,12 +228,37 @@ async function saveStudent() {
   }
 }
 
+// 重置密码
+async function handleResetPassword() {
+  if (!editingStudent.value) return
+  
+  try {
+    await ElMessageBox.confirm(
+      '确定要重置该学生的密码吗？密码将重置为: password',
+      '确认重置密码',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    // 调用重置密码API
+    await api.updateStudentAdmin(editingStudent.value.id, { password: 'password' })
+    ElMessage.success('密码重置成功，新密码为: password')
+    load()
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.message || '重置密码失败')
+    }
+  }
+}
+
 function resetForm() {
   editingStudent.value = null
   Object.assign(studentForm, {
     id: '',
     name: '',
-    password: '',
     gender: '',
     college: '',
     major: '',

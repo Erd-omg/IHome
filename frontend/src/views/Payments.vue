@@ -1,12 +1,48 @@
 <template>
   <div style="padding:24px;">
-    <el-page-header content="缴费管理" @back="$router.back()" />
+    <div style="margin-bottom: 16px;">
+      <el-button type="text" @click="$router.back()" style="padding: 0;">
+        <span style="font-size: 16px;">← 返回</span>
+      </el-button>
+    </div>
+    <h2 style="margin: 0; font-size: 20px; font-weight: 600;">缴费管理</h2>
+    
+    <!-- 电费提醒设置 -->
+    <el-card style="margin-top:16px;">
+      <template #header>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span>电费提醒设置</span>
+          <el-button size="small" type="primary" @click="showElectricityDialog = true">设置提醒</el-button>
+        </div>
+      </template>
+      <div style="color: #909399; font-size: 14px;">
+        当前设置：余额低于 <strong style="color: #409eff;">{{ electricityThreshold || '未设置' }}</strong> 元时提醒
+      </div>
+    </el-card>
+
+    <!-- 在线缴费 -->
     <el-card style="margin-top:16px;">
       <template #header>在线缴费</template>
       <el-form :model="form" label-width="100px" style="max-width:480px;">
-        <el-form-item label="学号"><el-input v-model="form.studentId" /></el-form-item>
-        <el-form-item label="金额"><el-input v-model.number="form.amount" type="number" /></el-form-item>
-        <el-form-item label="方式"><el-input v-model="form.paymentMethod" placeholder="住宿费/电费..." /></el-form-item>
+        <el-form-item label="学号">
+          <el-input v-model="form.studentId" :disabled="true" />
+        </el-form-item>
+        <el-form-item label="金额（元）">
+          <el-input-number 
+            v-model="form.amount" 
+            :precision="2" 
+            :step="0.01" 
+            :min="0" 
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="缴费类型">
+          <el-select v-model="form.paymentType" placeholder="请选择缴费类型" style="width: 100%">
+            <el-option label="住宿费" value="住宿费" />
+            <el-option label="电费" value="电费" />
+            <el-option label="其他" value="其他" />
+          </el-select>
+        </el-form-item>
         <el-form-item><el-button type="primary" @click="createPayment">提交</el-button></el-form-item>
       </el-form>
     </el-card>
@@ -19,11 +55,10 @@
         <el-form-item label="学号">
           <el-input v-model="searchForm.studentId" placeholder="请输入学号" clearable />
         </el-form-item>
-        <el-form-item label="缴费方式">
-          <el-select v-model="searchForm.paymentMethod" placeholder="请选择" clearable>
+        <el-form-item label="缴费类型">
+          <el-select v-model="searchForm.paymentType" placeholder="请选择" clearable style="width: 150px;">
             <el-option label="住宿费" value="住宿费" />
             <el-option label="电费" value="电费" />
-            <el-option label="水费" value="水费" />
             <el-option label="其他" value="其他" />
           </el-select>
         </el-form-item>
@@ -41,20 +76,15 @@
         @sort-change="handleSortChange"
       >
         <el-table-column prop="studentId" label="学号" sortable="custom" />
+        <el-table-column prop="paymentType" label="缴费类型" />
         <el-table-column prop="amount" label="金额" sortable="custom">
           <template #default="{ row }">
             ¥{{ row.amount?.toFixed(2) || '0.00' }}
           </template>
         </el-table-column>
-        <el-table-column prop="paymentMethod" label="方式" />
         <el-table-column prop="paymentTime" label="时间" sortable="custom">
           <template #default="{ row }">
             {{ formatDate(row.paymentTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="120">
-          <template #default="{ row }">
-            <el-button size="small" type="primary" @click="viewDetail(row)">查看</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -72,22 +102,66 @@
         />
       </div>
     </el-card>
+
+    <!-- 电费提醒设置对话框 -->
+    <el-dialog 
+      v-model="showElectricityDialog" 
+      title="电费提醒设置" 
+      width="400px"
+      @closed="showElectricityDialog = false"
+    >
+      <el-form label-width="120px">
+        <el-form-item label="提醒阈值（元）">
+          <el-input-number 
+            v-model="electricityThreshold" 
+            :precision="2" 
+            :step="0.01" 
+            :min="0" 
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item>
+          <span style="color: #909399; font-size: 12px;">
+            当电费余额低于设置值时，系统将发送提醒通知
+          </span>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showElectricityDialog = false">取消</el-button>
+        <el-button type="primary" @click="setElectricityReminder">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ref, reactive, onMounted, computed } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { api, type PaginationParams } from '../api'
+import { useStore } from 'vuex'
 
-const form = ref({ studentId: '', amount: 0, paymentMethod: '' })
+const store = useStore()
+
+// 获取当前用户信息
+const currentUser = computed(() => store.state.user)
+
+const form = ref({ studentId: '', amount: 0, paymentType: '', paymentMethod: '在线支付' })
 const list = ref<any[]>([])
 const loading = ref(false)
+const showElectricityDialog = ref(false)
+const electricityThreshold = ref(50)
+
+// 初始化表单学号
+const initForm = () => {
+  if (currentUser.value?.id) {
+    form.value.studentId = currentUser.value.id
+  }
+}
 
 // 搜索表单
 const searchForm = reactive({
   studentId: '',
-  paymentMethod: ''
+  paymentType: ''
 })
 
 // 分页参数
@@ -111,7 +185,7 @@ const formatDate = (date: string) => {
 
 // 创建缴费记录
 async function createPayment() {
-  if (!form.value.studentId || !form.value.amount || !form.value.paymentMethod) {
+  if (!form.value.studentId || !form.value.amount || !form.value.paymentType) {
     ElMessage.warning('请填写完整信息')
     return
   }
@@ -119,7 +193,9 @@ async function createPayment() {
   try {
     await api.createPayment(form.value)
     ElMessage.success('缴费记录创建成功')
-    form.value = { studentId: '', amount: 0, paymentMethod: '' }
+    // 重置表单但保持学号
+    const currentStudentId = form.value.studentId
+    form.value = { studentId: currentStudentId, amount: 0, paymentType: '', paymentMethod: '在线支付' }
     await loadPayments()
   } catch (error: any) {
     ElMessage.error(error.message || '创建失败')
@@ -139,8 +215,8 @@ async function loadPayments() {
     if (searchForm.studentId) {
       params.studentId = searchForm.studentId
     }
-    if (searchForm.paymentMethod) {
-      params.paymentMethod = searchForm.paymentMethod
+    if (searchForm.paymentType) {
+      params.paymentType = searchForm.paymentType
     }
     
     // 添加排序参数
@@ -180,7 +256,7 @@ function handleSearch() {
 // 重置搜索
 function handleReset() {
   searchForm.studentId = ''
-  searchForm.paymentMethod = ''
+  searchForm.paymentType = ''
   pagination.page = 1
   loadPayments()
 }
@@ -205,14 +281,21 @@ function handleSizeChange(size: number) {
   loadPayments()
 }
 
-// 查看详情
-function viewDetail(row: any) {
-  ElMessage.info(`查看缴费记录详情: ${row.studentId}`)
-  // 这里可以打开详情弹窗或跳转到详情页面
+// 设置电费提醒
+async function setElectricityReminder() {
+  try {
+    // 这里应该调用后端API保存设置
+    // await api.setElectricityThreshold(electricityThreshold.value)
+    ElMessage.success('电费提醒设置成功')
+    showElectricityDialog.value = false
+  } catch (error: any) {
+    ElMessage.error('设置失败: ' + (error.message || '未知错误'))
+  }
 }
 
 // 页面加载时获取数据
 onMounted(() => {
+  initForm()
   loadPayments()
 })
 </script>

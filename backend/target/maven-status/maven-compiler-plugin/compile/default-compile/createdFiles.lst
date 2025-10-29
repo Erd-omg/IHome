@@ -1,5 +1,6 @@
 com\ihome\config\MybatisPlusConfig.class
 com\ihome\controller\PasswordController.class
+com\ihome\controller\ExchangeRecommendationController.class
 com\ihome\controller\AuthController.class
 com\ihome\mapper\PaymentRecordMapper.class
 com\ihome\service\AllocationService.class
@@ -12,7 +13,6 @@ com\ihome\entity\PaymentRecord.class
 com\ihome\common\OperationLog.class
 com\ihome\entity\Admin.class
 com\ihome\controller\QuestionnaireController$SubmitQuestionnaireRequest.class
-com\ihome\controller\OperationLogController.class
 com\ihome\mapper\ElectricityBillMapper.class
 com\ihome\entity\Bed.class
 com\ihome\controller\PaymentController.class
@@ -21,8 +21,11 @@ com\ihome\service\StatisticsService.class
 com\ihome\mapper\RoommateTagMapper.class
 com\ihome\controller\PaymentController$CreatePaymentRequest.class
 com\ihome\mapper\BuildingMapper.class
+com\ihome\service\StudentImportService$1.class
+com\ihome\entity\RepairFeedback.class
+com\ihome\controller\LifestyleTagController.class
 com\ihome\mapper\QuestionnaireAnswerMapper.class
-com\ihome\mapper\OperationLogMapper.class
+com\ihome\config\OpenApiConfig.class
 com\ihome\entity\Dormitory.class
 com\ihome\IhomeApplication.class
 com\ihome\controller\DormitorySwitchController$ReviewRequest.class
@@ -30,16 +33,17 @@ com\ihome\controller\AuthController$RefreshTokenRequest.class
 com\ihome\mapper\ElectricityReminderMapper.class
 com\ihome\mapper\DormitoryAllocationMapper.class
 com\ihome\entity\ElectricityPayment.class
+com\ihome\controller\RepairFeedbackController.class
 com\ihome\config\JwtAuthenticationFilter.class
 com\ihome\common\JwtResponse.class
-com\ihome\service\OperationLogService.class
 com\ihome\common\JwtUtils$ClaimsResolver.class
 com\ihome\config\FileUploadConfig.class
-com\ihome\entity\OperationLog.class
 com\ihome\controller\StudentController.class
+com\ihome\controller\BedController.class
 com\ihome\mapper\AllocationFeedbackMapper.class
 com\ihome\mapper\NotificationMapper.class
 com\ihome\mapper\BedMapper.class
+com\ihome\service\StudentImportService.class
 com\ihome\controller\StatisticsController.class
 com\ihome\util\PasswordResetUtil.class
 com\ihome\controller\ElectricityController.class
@@ -50,14 +54,15 @@ com\ihome\controller\AdminController.class
 com\ihome\entity\AllocationFeedback.class
 com\ihome\service\DormitoryService.class
 com\ihome\controller\IntelligentAllocationController.class
-com\ihome\controller\StudentController$RegisterRequest.class
 com\ihome\controller\AdminController$LoginRequest.class
+com\ihome\service\RepairFeedbackService.class
 com\ihome\common\JwtUtils.class
 com\ihome\service\ElectricityService.class
 com\ihome\service\FileUploadService.class
 com\ihome\common\GlobalExceptionHandler.class
 com\ihome\controller\RootController.class
 com\ihome\controller\FileUploadController.class
+com\ihome\mapper\RepairFeedbackMapper.class
 com\ihome\service\NotificationService.class
 com\ihome\common\ApiResponse.class
 com\ihome\controller\RepairController$CreateRepairRequest.class
@@ -73,6 +78,7 @@ com\ihome\entity\ElectricityBill.class
 com\ihome\controller\NoticeController.class
 com\ihome\service\DataExportService.class
 com\ihome\controller\AllocationController.class
+com\ihome\common\BusinessException.class
 com\ihome\mapper\RepairOrderMapper.class
 com\ihome\controller\DataExportController.class
 com\ihome\controller\RepairController.class
@@ -88,4 +94,3 @@ com\ihome\config\SecurityConfig.class
 com\ihome\entity\RepairOrder.class
 com\ihome\service\DormitorySwitchService.class
 com\ihome\entity\QuestionnaireAnswer.class
-com\ihome\config\OperationLogAspect.class

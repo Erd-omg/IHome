@@ -37,7 +37,7 @@
       <div class="filter-section">
         <el-form :model="filterForm" inline>
           <el-form-item label="通知类型">
-            <el-select v-model="filterForm.type" placeholder="全部类型" clearable>
+            <el-select v-model="filterForm.type" placeholder="全部类型" clearable style="width:150px;">
               <el-option label="系统通知" value="system" />
               <el-option label="维修通知" value="repair" />
               <el-option label="缴费通知" value="payment" />
@@ -46,7 +46,7 @@
             </el-select>
           </el-form-item>
           <el-form-item label="优先级">
-            <el-select v-model="filterForm.priority" placeholder="全部优先级" clearable>
+            <el-select v-model="filterForm.priority" placeholder="全部优先级" clearable style="width:150px;">
               <el-option label="低" value="low" />
               <el-option label="普通" value="normal" />
               <el-option label="高" value="high" />
@@ -54,7 +54,8 @@
             </el-select>
           </el-form-item>
           <el-form-item label="接收者类型">
-            <el-select v-model="filterForm.receiverType" placeholder="全部用户" clearable>
+            <el-select v-model="filterForm.receiverType" placeholder="全部用户" clearable style="width:150px;">
+              <el-option label="全员" value="all" />
               <el-option label="学生" value="student" />
               <el-option label="管理员" value="admin" />
             </el-select>
@@ -73,7 +74,6 @@
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="id" label="ID" width="80" />
         <el-table-column prop="title" label="标题" min-width="200" />
         <el-table-column prop="type" label="类型" width="100">
           <template #default="{ row }">
@@ -91,8 +91,8 @@
         </el-table-column>
         <el-table-column prop="receiverType" label="接收者类型" width="100">
           <template #default="{ row }">
-            <el-tag :type="row.receiverType === 'student' ? 'primary' : 'success'">
-              {{ row.receiverType === 'student' ? '学生' : '管理员' }}
+            <el-tag :type="getReceiverTagType(row)">
+              {{ getReceiverText(row) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -109,10 +109,12 @@
             {{ formatDateTime(row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="viewNotification(row)">查看</el-button>
-            <el-button size="small" type="danger" @click="deleteNotification(row)">删除</el-button>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <el-button size="small" @click="viewNotification(row)">查看</el-button>
+              <el-button size="small" type="danger" @click="deleteNotification(row)">删除</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -201,7 +203,7 @@
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="接收者">
-            {{ selectedNotification.receiverType === 'student' ? '学生' : '管理员' }} - {{ selectedNotification.receiverId }}
+            {{ getReceiverText(selectedNotification) }} - {{ selectedNotification.receiverId === 'ALL' || selectedNotification.receiverId === 'all' ? '全员' : selectedNotification.receiverId }}
           </el-descriptions-item>
           <el-descriptions-item label="状态">
             <el-tag :type="selectedNotification.isRead ? 'success' : 'warning'">
@@ -315,6 +317,22 @@ const getPriorityTagType = (priority: string) => {
   return priorityMap[priority] || 'primary'
 }
 
+// 获取接收者文本
+const getReceiverText = (row: any) => {
+  if (row.receiverId === 'ALL' || row.receiverId === 'all') {
+    return '全员'
+  }
+  return row.receiverType === 'student' ? '学生' : '管理员'
+}
+
+// 获取接收者标签类型
+const getReceiverTagType = (row: any) => {
+  if (row.receiverId === 'ALL' || row.receiverId === 'all') {
+    return 'warning'
+  }
+  return row.receiverType === 'student' ? 'primary' : 'success'
+}
+
 // 获取优先级文本
 const getPriorityText = (priority: string) => {
   const priorityMap: Record<string, string> = {
@@ -343,6 +361,9 @@ const loadNotifications = async () => {
     const response = data.data
     notifications.value = response.content || []
     pagination.total = response.totalElements || 0
+    
+    // 重新加载统计数据
+    loadStats()
   } catch (error) {
     console.error('加载通知列表失败:', error)
     ElMessage.error('加载通知列表失败')
@@ -406,6 +427,18 @@ const handleCloseDialog = () => {
 const viewNotification = (notification: any) => {
   selectedNotification.value = notification
   showViewDialog.value = true
+  
+  // 如果通知的接收者为当前登录用户且未读，则自动标记为已读
+  if (!notification.isRead) {
+    // 获取当前用户信息
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+    if (currentUser.id && notification.receiverId === currentUser.id) {
+      // 标记为已读
+      api.markAsRead(notification.id, notification.receiverId, notification.receiverType).catch(() => {
+        // 静默失败
+      })
+    }
+  }
 }
 
 // 删除通知
@@ -417,13 +450,14 @@ const deleteNotification = async (notification: any) => {
       type: 'warning'
     })
     
-    // 这里需要实现删除接口
+    await api.deleteNotificationAdmin(notification.id)
     ElMessage.success('删除成功')
     loadNotifications()
-  } catch (error) {
+    loadStats()
+  } catch (error: any) {
     if (error !== 'cancel') {
       console.error('删除通知失败:', error)
-      ElMessage.error('删除通知失败')
+      ElMessage.error(error.message || '删除通知失败')
     }
   }
 }
@@ -448,9 +482,35 @@ const cleanExpiredNotifications = async () => {
   }
 }
 
+// 加载统计数据
+const loadStats = async () => {
+  try {
+    const { data } = await api.adminNotifications({ page: 1, size: 1000 })
+    const notifications = data.data?.content || []
+    
+    // 计算统计数据
+    stats.total = notifications.length
+    stats.unread = notifications.filter(n => !n.isRead).length
+    stats.today = notifications.filter(n => {
+      const today = new Date().toDateString()
+      const nDate = new Date(n.createTime).toDateString()
+      return nDate === today
+    }).length
+    stats.expired = notifications.filter(n => {
+      if (n.expireTime) {
+        return new Date(n.expireTime) < new Date()
+      }
+      return false
+    }).length
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+  }
+}
+
 // 组件挂载时加载数据
 onMounted(() => {
   loadNotifications()
+  loadStats()
 })
 </script>
 

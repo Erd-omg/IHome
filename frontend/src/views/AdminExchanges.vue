@@ -4,25 +4,57 @@
       <template #header>调换申请审核</template>
       <div style="display:flex; gap:8px; margin-bottom:12px;">
         <el-select v-model="status" placeholder="状态" clearable style="width:160px;">
-          <el-option label="未处理" value="未处理" />
+          <el-option label="待审核" value="待审核" />
           <el-option label="已通过" value="已通过" />
-          <el-option label="已驳回" value="已驳回" />
+          <el-option label="已拒绝" value="已拒绝" />
         </el-select>
         <el-button type="primary" @click="load">查询</el-button>
+        <el-button @click="handleReset">重置</el-button>
       </div>
       <el-table :data="rows" v-loading="loading">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="studentId" label="学号" width="140" />
-        <el-table-column prop="applicant" label="申请人" width="140" />
-        <el-table-column prop="currentDorm" label="当前宿舍" width="140" />
-        <el-table-column prop="targetDorm" label="申请宿舍" width="140" />
-        <el-table-column prop="reason" label="调换原因" />
-        <el-table-column prop="status" label="状态" width="100" />
-        <el-table-column label="操作" width="250">
+        <el-table-column prop="applicantId" label="申请人学号" width="140" />
+        <el-table-column prop="applicantName" label="申请人" width="120">
           <template #default="{ row }">
-            <el-button size="small" type="success" @click="update(row, '已通过')" :disabled="row.status==='已通过'">同意</el-button>
-            <el-button size="small" type="danger" @click="update(row, '已拒绝')" :disabled="row.status==='已拒绝'">拒绝</el-button>
-            <el-button size="small" type="warning" @click="deleteExchange(row)">删除</el-button>
+            {{ row.applicantName || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column prop="currentBedId" label="当前床位ID" width="140" />
+        <el-table-column prop="targetBedId" label="目标床位ID" width="140" />
+        <el-table-column prop="reason" label="调换原因" min-width="150" />
+        <el-table-column prop="status" label="状态" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getStatusTagType(row.status)">
+              {{ row.status }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="280">
+          <template #default="{ row }">
+            <div style="display:flex; gap:8px; align-items:center;">
+              <el-button 
+                size="small" 
+                type="success" 
+                @click="update(row, '已通过')" 
+                :disabled="row.status !== '待审核'"
+              >
+                同意
+              </el-button>
+              <el-button 
+                size="small" 
+                type="danger" 
+                @click="update(row, '已拒绝')" 
+                :disabled="row.status !== '待审核'"
+              >
+                拒绝
+              </el-button>
+              <el-button 
+                size="small" 
+                type="warning" 
+                @click="deleteExchange(row)"
+              >
+                删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -46,6 +78,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import api from '../api'
 
 const rows = ref<any[]>([])
+const students = ref<any[]>([])
 const loading = ref(false)
 const page = ref(1)
 const size = ref(10)
@@ -57,22 +90,76 @@ async function load() {
   try {
     const params: any = { page: page.value, size: size.value }
     if (status.value) params.status = status.value
-    const { data } = await api.adminExchanges(params)
+    const { data } = await api.adminListExchanges(params)
     const d = data.data
     rows.value = d.content || []
     total.value = d.totalElements || 0
+    
+    // 加载学生信息
+    if (rows.value.length > 0) {
+      await loadStudentNames()
+    }
   } finally {
     loading.value = false
   }
 }
 
+async function loadStudentNames() {
+  const studentIds = [...new Set(rows.value.map((row: any) => row.applicantId))]
+  for (const studentId of studentIds) {
+    if (!students.value.find(s => s.id === studentId)) {
+      try {
+        const { data } = await api.getStudentAdmin(studentId)
+        if (data.data) {
+          students.value.push(data.data)
+        }
+      } catch (e) {
+        console.error('加载学生信息失败:', e)
+      }
+    }
+  }
+  
+  // 将学生信息添加到行中
+  rows.value = rows.value.map((row: any) => {
+    const student = students.value.find(s => s.id === row.applicantId)
+    return { ...row, applicantName: student?.name || '-' }
+  })
+}
+
+function handleReset() {
+  status.value = ''
+  page.value = 1
+  load()
+}
+
+const getStatusTagType = (status: string) => {
+  switch(status) {
+    case '待审核': return 'warning'
+    case '已通过': return 'success'
+    case '已拒绝': return 'danger'
+    default: return 'info'
+  }
+}
+
 async function update(row: any, s: string) {
   try {
-    await api.updateExchangeStatus(row.id, s)
+    await ElMessageBox.confirm(
+      `确定要${s === '已通过' ? '同意' : '拒绝'}该调换申请吗？`,
+      '确认操作',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    await api.adminUpdateExchangeStatus(row.id, s)
     ElMessage.success('状态更新成功')
     load()
   } catch (error: any) {
-    ElMessage.error(error.message || '更新失败')
+    if (error !== 'cancel') {
+      ElMessage.error(error.message || '更新失败')
+    }
   }
 }
 

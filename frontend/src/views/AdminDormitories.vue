@@ -18,9 +18,8 @@
       <el-form :model="searchForm" :inline="true" style="margin-bottom:16px;">
         <el-form-item label="楼栋">
           <el-select v-model="searchForm.buildingId" placeholder="请选择楼栋" clearable style="width:160px;">
-            <el-option label="A01" value="A01" />
-            <el-option label="B01" value="B01" />
-            <el-option label="C01" value="C01" />
+            <el-option label="B001 - 一号男生公寓" value="B001" />
+            <el-option label="B002 - 二号女生公寓" value="B002" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
@@ -28,10 +27,18 @@
             <el-option label="可用" value="可用" />
             <el-option label="已满" value="已满" />
             <el-option label="维修中" value="维修中" />
+            <el-option label="停用" value="停用" />
           </el-select>
         </el-form-item>
-        <el-form-item label="宿舍名称">
-          <el-input v-model="searchForm.name" placeholder="请输入宿舍名称" clearable style="width:200px;" />
+        <el-form-item label="宿舍ID">
+          <el-autocomplete
+            v-model="searchForm.id"
+            :fetch-suggestions="searchDormitories"
+            placeholder="请输入宿舍ID或房间号"
+            clearable
+            style="width:200px;"
+            @select="handleDormitorySelect"
+          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">搜索</el-button>
@@ -42,8 +49,8 @@
       <!-- 宿舍列表 -->
       <el-table :data="dormitories" v-loading="loading" @sort-change="handleSortChange">
         <el-table-column prop="id" label="宿舍ID" sortable="custom" width="120" />
-        <el-table-column prop="buildingId" label="楼栋" sortable="custom" width="100" />
-        <el-table-column prop="name" label="宿舍名称" sortable="custom" width="120" />
+        <el-table-column prop="buildingId" label="楼栋" sortable="custom" width="120" />
+        <el-table-column prop="roomNumber" label="房间号" sortable="custom" width="100" />
         <el-table-column prop="bedCount" label="床位总数" sortable="custom" width="100" />
         <el-table-column prop="currentOccupancy" label="当前入住" sortable="custom" width="100" />
         <el-table-column label="使用率" width="120">
@@ -62,9 +69,9 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="viewBeds(row)">查看床位</el-button>
+            <el-button size="small" @click="viewBeds(row)">查看</el-button>
             <el-button size="small" type="primary" @click="editDormitory(row)">编辑</el-button>
             <el-button size="small" type="danger" @click="deleteDormitory(row)">删除</el-button>
           </template>
@@ -101,22 +108,22 @@
           <el-col :span="12">
             <el-form-item label="楼栋" prop="buildingId">
               <el-select v-model="dormitoryForm.buildingId" style="width:100%">
-                <el-option label="A01" value="A01" />
-                <el-option label="B01" value="B01" />
-                <el-option label="C01" value="C01" />
+                <el-option label="B001 - 一号男生公寓" value="B001" />
+                <el-option label="B002 - 二号女生公寓" value="B002" />
               </el-select>
             </el-form-item>
           </el-col>
         </el-row>
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="宿舍名称" prop="name">
-              <el-input v-model="dormitoryForm.name" />
+            <el-form-item label="房间号" prop="roomNumber">
+              <el-input v-model="dormitoryForm.roomNumber" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="床位总数" prop="bedCount">
-              <el-input-number v-model="dormitoryForm.bedCount" :min="1" :max="8" style="width:100%" />
+              <el-input-number v-model="dormitoryForm.bedCount" :min="1" :max="8" :disabled="editingDormitory" style="width:100%" />
+              <div style="font-size:12px; color:#909399; margin-top:4px;">编辑模式下此字段不可修改</div>
             </el-form-item>
           </el-col>
         </el-row>
@@ -135,25 +142,69 @@
     </el-dialog>
 
     <!-- 床位详情弹窗 -->
-    <el-dialog v-model="showBedsDialog" title="床位详情" width="800px">
+    <el-dialog v-model="showBedsDialog" title="床位详情" width="900px">
       <div v-if="currentDormitory">
         <div style="margin-bottom:16px;">
-          <el-tag type="info">{{ currentDormitory.id }} - {{ currentDormitory.name }}</el-tag>
+          <el-tag type="info">宿舍ID: {{ currentDormitory.id }}</el-tag>
+          <el-tag type="success" style="margin-left:8px;">房间号: {{ currentDormitory.roomNumber }}</el-tag>
         </div>
-        <el-row :gutter="16">
-          <el-col :span="6" v-for="bed in beds" :key="bed.id">
-            <el-card class="bed-card" :class="{ 'occupied': bed.status === '已占用' }">
-              <div class="bed-number">{{ bed.bedNumber }}号床</div>
-              <div class="bed-type">{{ bed.type }}</div>
-              <div class="bed-status">
-                <el-tag :type="bed.status === '可用' ? 'success' : 'danger'" size="small">
-                  {{ bed.status }}
-                </el-tag>
-              </div>
-            </el-card>
-          </el-col>
-        </el-row>
+        <el-table :data="beds" border>
+          <el-table-column prop="id" label="床位ID" width="140" />
+          <el-table-column prop="bedNumber" label="床号" width="80" />
+          <el-table-column prop="bedType" label="床型" width="100" />
+          <el-table-column prop="status" label="状态" width="100">
+            <template #default="{ row }">
+              <el-tag :type="row.status === '可用' ? 'success' : 'danger'" size="small">
+                {{ row.status }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="occupantName" label="使用者姓名" width="120">
+            <template #default="{ row }">
+              <span v-if="row.occupantName">{{ row.occupantName }}</span>
+              <span v-else style="color:#ccc;">-</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="occupantId" label="使用者学号" width="120">
+            <template #default="{ row }">
+              <span v-if="row.occupantId">{{ row.occupantId }}</span>
+              <span v-else style="color:#ccc;">-</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="100">
+            <template #default="{ row }">
+              <el-button 
+                size="small" 
+                type="primary" 
+                text 
+                @click="viewBedDetail(row)"
+              >
+                详情
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
+    </el-dialog>
+
+    <!-- 床位详情子弹窗 -->
+    <el-dialog v-model="showBedDetailDialog" title="床位详细信息" width="600px">
+      <el-descriptions :column="1" border v-if="currentBed">
+        <el-descriptions-item label="床位ID">{{ currentBed.id }}</el-descriptions-item>
+        <el-descriptions-item label="床号">{{ currentBed.bedNumber }}</el-descriptions-item>
+        <el-descriptions-item label="床型">{{ currentBed.bedType }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="currentBed.status === '可用' ? 'success' : 'danger'">
+            {{ currentBed.status }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="使用者姓名">
+          {{ currentBed.occupantName || '-' }}
+        </el-descriptions-item>
+        <el-descriptions-item label="使用者学号">
+          {{ currentBed.occupantId || '-' }}
+        </el-descriptions-item>
+      </el-descriptions>
     </el-dialog>
   </div>
 </template>
@@ -170,15 +221,17 @@ const loading = ref(false)
 const saving = ref(false)
 const showAddDialog = ref(false)
 const showBedsDialog = ref(false)
+const showBedDetailDialog = ref(false)
 const editingDormitory = ref<any>(null)
 const currentDormitory = ref<any>(null)
+const currentBed = ref<any>(null)
 const dormitoryFormRef = ref<FormInstance>()
 
 // 搜索表单
 const searchForm = reactive({
   buildingId: '',
   status: '',
-  name: ''
+  id: ''
 })
 
 // 分页参数
@@ -198,7 +251,7 @@ const sortParams = reactive({
 const dormitoryForm = reactive({
   id: '',
   buildingId: '',
-  name: '',
+  roomNumber: '',
   bedCount: 4,
   status: '可用'
 })
@@ -211,8 +264,8 @@ const dormitoryRules: FormRules = {
   buildingId: [
     { required: true, message: '请选择楼栋', trigger: 'change' }
   ],
-  name: [
-    { required: true, message: '请输入宿舍名称', trigger: 'blur' }
+  roomNumber: [
+    { required: true, message: '请输入房间号', trigger: 'blur' }
   ],
   bedCount: [
     { required: true, message: '请输入床位总数', trigger: 'blur' }
@@ -261,8 +314,8 @@ const loadDormitories = async () => {
     if (searchForm.status) {
       params.status = searchForm.status
     }
-    if (searchForm.name) {
-      params.name = searchForm.name
+    if (searchForm.id) {
+      params.id = searchForm.id
     }
     
     // 添加排序参数
@@ -289,6 +342,32 @@ const loadDormitories = async () => {
   }
 }
 
+// 搜索宿舍（用于autocomplete）
+const searchDormitories = async (queryString: string, cb: (results: any[]) => void) => {
+  if (!queryString) {
+    cb([])
+    return
+  }
+  
+  try {
+    const response = await api.adminDormitories({ id: queryString, page: 1, size: 10 })
+    const data = response.data.data
+    const results = (data?.content || []).map((dorm: any) => ({
+      value: dorm.id,
+      label: dorm.id
+    }))
+    cb(results)
+  } catch (error) {
+    console.error('搜索宿舍失败:', error)
+    cb([])
+  }
+}
+
+// 处理宿舍选择
+const handleDormitorySelect = (item: any) => {
+  searchForm.id = item.value
+}
+
 // 搜索
 const handleSearch = () => {
   pagination.page = 1
@@ -299,7 +378,7 @@ const handleSearch = () => {
 const handleReset = () => {
   searchForm.buildingId = ''
   searchForm.status = ''
-  searchForm.name = ''
+  searchForm.id = ''
   pagination.page = 1
   loadDormitories()
 }
@@ -329,12 +408,56 @@ const viewBeds = async (row: any) => {
   currentDormitory.value = row
   try {
     const response = await api.listBeds(row.id)
-    beds.value = response.data.data || []
+    const bedList = response.data.data || []
+    
+    // 获取每个床位的使用者信息
+    beds.value = []
+    for (const bed of bedList) {
+      const bedInfo: any = { ...bed }
+      try {
+        // 如果床位被占用，通过分配记录查找使用者信息
+        if (bed.status === '已占用') {
+          try {
+            const allocationRes = await api.adminAllocations({ bedId: bed.id, status: '在住', size: 100 })
+            const allocations = allocationRes.data.data?.content || []
+            if (allocations && allocations.length > 0) {
+              const allocation = allocations.find((a: any) => a.bedId === bed.id) || allocations[0]
+              const studentRes = await api.getStudentAdmin(allocation.studentId)
+              const studentData = studentRes.data.data
+              bedInfo.occupantName = studentData?.name || ''
+              bedInfo.occupantId = studentData?.id || ''
+            } else {
+              bedInfo.occupantName = ''
+              bedInfo.occupantId = ''
+            }
+          } catch (e) {
+            console.error('获取使用者信息失败:', e)
+            bedInfo.occupantName = ''
+            bedInfo.occupantId = ''
+          }
+        } else {
+          bedInfo.occupantName = ''
+          bedInfo.occupantId = ''
+        }
+      } catch (e) {
+        console.error('处理床位信息失败:', e)
+        bedInfo.occupantName = ''
+        bedInfo.occupantId = ''
+      }
+      beds.value.push(bedInfo)
+    }
+    
     showBedsDialog.value = true
   } catch (error) {
     console.error('加载床位信息失败:', error)
     ElMessage.error('加载床位信息失败')
   }
+}
+
+// 查看床位详情
+const viewBedDetail = (bed: any) => {
+  currentBed.value = bed
+  showBedDetailDialog.value = true
 }
 
 // 编辑宿舍
@@ -403,7 +526,7 @@ const resetForm = () => {
   Object.assign(dormitoryForm, {
     id: '',
     buildingId: '',
-    name: '',
+    roomNumber: '',
     bedCount: 4,
     status: '可用'
   })

@@ -48,7 +48,6 @@
 
       <!-- 分配列表 -->
       <el-table :data="allocations" v-loading="loading" @sort-change="handleSortChange">
-        <el-table-column prop="id" label="分配ID" sortable="custom" width="100" />
         <el-table-column prop="studentId" label="学号" sortable="custom" width="120" />
         <el-table-column prop="bedId" label="床位ID" sortable="custom" width="140" />
         <el-table-column prop="checkInDate" label="入住时间" sortable="custom" width="120">
@@ -68,17 +67,18 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
-            <el-button 
-              size="small" 
-              type="warning" 
-              @click="handleCheckout(row)"
-              v-if="row.status === '在住'"
-            >
-              办理退宿
-            </el-button>
-            <el-button size="small" type="info" @click="viewHistory(row)">查看历史</el-button>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <el-button 
+                size="small" 
+                type="warning" 
+                @click="handleCheckout(row)"
+                v-if="row.status === '在住'"
+              >
+                办理退宿
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -101,10 +101,32 @@
     <el-dialog v-model="showAllocateDialog" title="分配宿舍" width="600px">
       <el-form :model="allocateForm" :rules="allocateRules" ref="allocateFormRef" label-width="100px">
         <el-form-item label="学号" prop="studentId">
-          <el-input v-model="allocateForm.studentId" placeholder="请输入学号" />
+          <el-autocomplete
+            v-model="allocateForm.studentId"
+            :fetch-suggestions="searchStudents"
+            placeholder="请输入或搜索学号"
+            style="width: 100%"
+            clearable
+            @select="handleStudentSelect"
+          >
+            <template #default="{ item }">
+              <div>{{ item.id }} - {{ item.name }} ({{ item.major }})</div>
+            </template>
+          </el-autocomplete>
         </el-form-item>
         <el-form-item label="床位ID" prop="bedId">
-          <el-input v-model="allocateForm.bedId" placeholder="请输入床位ID" />
+          <el-autocomplete
+            v-model="allocateForm.bedId"
+            :fetch-suggestions="searchBeds"
+            placeholder="请输入或搜索床位ID"
+            style="width: 100%"
+            clearable
+            @select="handleBedSelect"
+          >
+            <template #default="{ item }">
+              <div>{{ item.id }} - {{ item.dormitoryId }} ({{ item.bedType }}) - {{ item.status }}</div>
+            </template>
+          </el-autocomplete>
         </el-form-item>
         <el-form-item label="入住时间" prop="checkInDate">
           <el-date-picker
@@ -156,34 +178,6 @@
       </template>
     </el-dialog>
 
-    <!-- 住宿历史弹窗 -->
-    <el-dialog v-model="showHistoryDialog" title="住宿历史" width="800px">
-      <div v-if="historyAllocation">
-        <div style="margin-bottom:16px;">
-          <el-tag type="info">学号：{{ historyAllocation.studentId }}</el-tag>
-        </div>
-        <el-table :data="allocationHistory" v-loading="loadingHistory">
-          <el-table-column prop="bedId" label="床位ID" width="140" />
-          <el-table-column prop="checkInDate" label="入住时间" width="120">
-            <template #default="{ row }">
-              {{ formatDate(row.checkInDate) }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="checkOutDate" label="退宿时间" width="120">
-            <template #default="{ row }">
-              {{ row.checkOutDate ? formatDate(row.checkOutDate) : '-' }}
-            </template>
-          </el-table-column>
-          <el-table-column prop="status" label="状态" width="100">
-            <template #default="{ row }">
-              <el-tag :type="getStatusTagType(row.status)">
-                {{ row.status }}
-              </el-tag>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -194,16 +188,12 @@ import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'elem
 import { Plus } from '@element-plus/icons-vue'
 
 const allocations = ref<any[]>([])
-const allocationHistory = ref<any[]>([])
 const loading = ref(false)
-const loadingHistory = ref(false)
 const saving = ref(false)
 const checkingOut = ref(false)
 const showAllocateDialog = ref(false)
 const showCheckoutDialog = ref(false)
-const showHistoryDialog = ref(false)
 const checkoutAllocation = ref<any>(null)
-const historyAllocation = ref<any>(null)
 const allocateFormRef = ref<FormInstance>()
 
 // 搜索表单
@@ -368,8 +358,11 @@ const confirmCheckout = async () => {
   try {
     checkingOut.value = true
     
-    // 这里调用退宿的API
-    // await api.checkoutStudent(checkoutAllocation.value.id, checkoutForm)
+    // 调用退宿的API
+    await api.checkoutAllocation(checkoutAllocation.value.id, {
+      checkOutDate: checkoutForm.checkOutDate,
+      reason: checkoutForm.reason
+    })
     ElMessage.success('退宿办理成功')
     showCheckoutDialog.value = false
     await loadAllocations()
@@ -377,23 +370,6 @@ const confirmCheckout = async () => {
     ElMessage.error(error.message || '退宿办理失败')
   } finally {
     checkingOut.value = false
-  }
-}
-
-// 查看历史
-const viewHistory = async (row: any) => {
-  historyAllocation.value = row
-  loadingHistory.value = true
-  
-  try {
-    const response = await api.getAllocationHistory(row.studentId)
-    allocationHistory.value = response.data.data || []
-    showHistoryDialog.value = true
-  } catch (error) {
-    console.error('加载住宿历史失败:', error)
-    ElMessage.error('加载住宿历史失败')
-  } finally {
-    loadingHistory.value = false
   }
 }
 
@@ -405,8 +381,8 @@ const saveAllocation = async () => {
     await allocateFormRef.value.validate()
     saving.value = true
     
-    // 这里调用分配宿舍的API
-    // await api.allocateStudent(allocateForm)
+    // 调用分配宿舍的API
+    await api.allocateStudent(allocateForm)
     ElMessage.success('宿舍分配成功')
     showAllocateDialog.value = false
     resetAllocateForm()
@@ -428,6 +404,55 @@ const resetAllocateForm = () => {
     checkInDate: '',
     remark: ''
   })
+}
+
+// 搜索学生
+const searchStudents = async (queryString: string, cb: (suggestions: any[]) => void) => {
+  try {
+    const response = await api.searchStudents(queryString)
+    const students = response.data.data || []
+    const results = students.map(student => ({
+      value: student.id,
+      id: student.id,
+      name: student.name,
+      major: student.major,
+      status: student.status
+    }))
+    cb(results)
+  } catch (error) {
+    console.error('搜索学生失败:', error)
+    cb([])
+  }
+}
+
+// 搜索床位
+const searchBeds = async (queryString: string, cb: (suggestions: any[]) => void) => {
+  try {
+    const response = await api.searchBedsAdmin(queryString)
+    const beds = response.data.data || []
+    const results = beds.map(bed => ({
+      value: bed.id,
+      id: bed.id,
+      dormitoryId: bed.dormitoryId,
+      bedNumber: bed.bedNumber,
+      bedType: bed.bedType,
+      status: bed.status
+    }))
+    cb(results)
+  } catch (error) {
+    console.error('搜索床位失败:', error)
+    cb([])
+  }
+}
+
+// 处理学生选择
+const handleStudentSelect = (item: any) => {
+  allocateForm.studentId = item.id
+}
+
+// 处理床位选择
+const handleBedSelect = (item: any) => {
+  allocateForm.bedId = item.id
 }
 
 onMounted(() => {

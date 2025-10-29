@@ -5,8 +5,8 @@
 
       <el-form :inline="true" :model="search" style="margin-bottom:12px;">
         <el-form-item label="学号"><el-input v-model="search.studentId" clearable /></el-form-item>
-        <el-form-item label="方式">
-          <el-select v-model="search.paymentMethod" clearable style="width:140px;">
+        <el-form-item label="缴费类型">
+          <el-select v-model="search.paymentType" clearable style="width:140px;">
             <el-option label="住宿费" value="住宿费" />
             <el-option label="电费" value="电费" />
             <el-option label="水费" value="水费" />
@@ -24,7 +24,7 @@
         <el-table-column prop="amount" label="金额" sortable="custom">
           <template #default="{ row }">¥{{ Number(row.amount).toFixed(2) }}</template>
         </el-table-column>
-        <el-table-column prop="paymentMethod" label="方式" />
+        <el-table-column prop="paymentType" label="缴费类型" />
         <el-table-column prop="paymentTime" label="缴费时间" sortable="custom" />
       </el-table>
 
@@ -55,14 +55,14 @@ const total = ref(0)
 const sortBy = ref('')
 const sortOrder = ref('')
 
-const search = reactive({ studentId: '', paymentMethod: '' })
+const search = reactive({ studentId: '', paymentType: '' })
 
 async function load() {
   loading.value = true
   try {
     const params: any = { page: page.value, size: size.value }
     if (search.studentId) params.studentId = search.studentId
-    if (search.paymentMethod) params.paymentMethod = search.paymentMethod
+    if (search.paymentType) params.paymentType = search.paymentType
     if (sortBy.value) params.sort = `${sortBy.value},${sortOrder.value}`
     const { data } = await api.adminPayments(params)
     const d = data.data
@@ -83,7 +83,7 @@ function onSort({ prop, order }: any) {
 
 function onSize(s: number) { size.value = s; page.value = 1; load() }
 function onSearch() { page.value = 1; load() }
-function onReset() { search.studentId=''; search.paymentMethod=''; page.value=1; load() }
+function onReset() { search.studentId=''; search.paymentType=''; page.value=1; load() }
 
 onMounted(load)
 </script>

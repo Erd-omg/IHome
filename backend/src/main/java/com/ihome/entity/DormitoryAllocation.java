@@ -12,6 +12,7 @@ public class DormitoryAllocation {
     @TableId(type = IdType.AUTO)
     private Integer id;
     private String studentId;
+    private String dormitoryId;
     private String bedId;
     private LocalDate checkInDate;
     private LocalDate checkOutDate;
@@ -22,6 +23,8 @@ public class DormitoryAllocation {
     public void setId(Integer id) { this.id = id; }
     public String getStudentId() { return studentId; }
     public void setStudentId(String studentId) { this.studentId = studentId; }
+    public String getDormitoryId() { return dormitoryId; }
+    public void setDormitoryId(String dormitoryId) { this.dormitoryId = dormitoryId; }
     public String getBedId() { return bedId; }
     public void setBedId(String bedId) { this.bedId = bedId; }
     public LocalDate getCheckInDate() { return checkInDate; }

@@ -136,32 +136,20 @@
     <!-- 最近活动 -->
     <el-card style="margin:24px 0;">
       <template #header>最近活动</template>
-      <el-timeline>
-        <el-timeline-item timestamp="2024-01-15 14:30" placement="top">
+      <el-timeline v-if="recentActivities.length > 0">
+        <el-timeline-item 
+          v-for="(activity, index) in recentActivities.slice(0, 5)" 
+          :key="index"
+          :timestamp="formatDate(activity.timestamp)" 
+          placement="top"
+        >
           <el-card>
-            <h4>新学生注册</h4>
-            <p>学生 张三 (学号: 2024001) 完成注册</p>
-          </el-card>
-        </el-timeline-item>
-        <el-timeline-item timestamp="2024-01-15 10:20" placement="top">
-          <el-card>
-            <h4>维修工单完成</h4>
-            <p>宿舍 D01-101 的空调维修已完成</p>
-          </el-card>
-        </el-timeline-item>
-        <el-timeline-item timestamp="2024-01-14 16:45" placement="top">
-          <el-card>
-            <h4>宿舍调换申请</h4>
-            <p>学生 李四 申请调换到 D02-201</p>
-          </el-card>
-        </el-timeline-item>
-        <el-timeline-item timestamp="2024-01-14 09:15" placement="top">
-          <el-card>
-            <h4>缴费记录</h4>
-            <p>学生 王五 完成住宿费缴纳 ¥1200</p>
+            <h4>{{ activity.title }}</h4>
+            <p>{{ activity.description }}</p>
           </el-card>
         </el-timeline-item>
       </el-timeline>
+      <el-empty v-else description="暂无活动" />
     </el-card>
   </div>
 </template>
@@ -183,10 +171,23 @@ const dashboardData = reactive({
   completedRepairs: 0
 })
 
+const recentActivities = ref<any[]>([])
+
 // 计算使用率
 const getUsageRate = () => {
   if (!dashboardData.totalBeds) return 0
   return Math.round((dashboardData.occupiedBeds / dashboardData.totalBeds) * 100)
+}
+
+// 格式化日期
+const formatDate = (date: any) => {
+  if (!date) return '-'
+  try {
+    const d = new Date(date)
+    return d.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+  } catch {
+    return date
+  }
 }
 
 // 加载仪表盘数据
@@ -195,6 +196,11 @@ const loadDashboardData = async () => {
     const response = await api.dashboard()
     const data = response.data.data
     Object.assign(dashboardData, data)
+    
+    // 加载最近活动
+    if (data.recentActivities) {
+      recentActivities.value = data.recentActivities
+    }
   } catch (error) {
     console.error('加载仪表盘数据失败:', error)
     ElMessage.error('加载数据失败')

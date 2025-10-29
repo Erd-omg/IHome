@@ -115,7 +115,6 @@ public class AllocationServiceTest {
         student.setMajor(major);
         student.setGrade(grade);
         student.setStatus("在校");
-        student.setCreatedAt(LocalDateTime.now());
         return student;
     }
 

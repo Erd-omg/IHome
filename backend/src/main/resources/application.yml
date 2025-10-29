@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/ihome?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true
     username: root
-    password: cwy20050516
+    password: ********  # 数据库密码（请根据实际情况修改）
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       connection-init-sql: SET NAMES utf8mb4
@@ -34,13 +34,22 @@ logging:
 springdoc:
   api-docs:
     enabled: true
+    path: /v3/api-docs
   swagger-ui:
+    enabled: true
     path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  show-actuator: false
+  group-configs:
+    - group: 'default'
+      display-name: 'IHome宿舍管理系统API'
+      paths-to-match: '/**'
 
 # JWT配置
 jwt:
   secret: your-jwt-secret-key-here-must-be-at-least-256-bits-long-for-security
-  expiration: 600000  # 10分钟，单位毫秒
+  expiration: 7200000  # 2小时，单位毫秒
   refresh-expiration: 604800000  # 7天，单位毫秒
 
 # 文件上传配置

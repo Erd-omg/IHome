@@ -1,6 +1,11 @@
 <template>
   <div style="padding:24px;">
-    <el-page-header content="我的调换申请" @back="$router.back()" />
+    <div style="margin-bottom: 16px;">
+      <el-button type="text" @click="$router.back()" style="padding: 0;">
+        <span style="font-size: 16px;">← 返回</span>
+      </el-button>
+    </div>
+    <h2 style="margin: 0; font-size: 20px; font-weight: 600;">我的调换申请</h2>
     
     <!-- 操作栏 -->
     <el-card style="margin-top:16px;">
@@ -33,52 +38,45 @@
       <div v-if="switches.length > 0">
         <div v-for="item in switches" :key="item.id" class="switch-item">
           <div class="switch-header">
-            <div class="switch-info">
-              <div class="switch-title">调换申请 #{{ item.id }}</div>
-              <div class="switch-time">{{ formatDate(item.createdAt) }}</div>
-            </div>
-            <el-tag :type="getStatusTagType(item.status)" size="large">
-              {{ item.status }}
-            </el-tag>
-          </div>
-          
-          <div class="switch-content">
-            <el-row :gutter="20">
-              <el-col :span="8">
-                <div class="info-item">
-                  <div class="info-label">申请人</div>
-                  <div class="info-value">{{ item.applicant }}</div>
-                </div>
-              </el-col>
-              <el-col :span="8">
-                <div class="info-item">
-                  <div class="info-label">当前宿舍</div>
-                  <div class="info-value">{{ item.currentDorm }}</div>
-                </div>
-              </el-col>
-              <el-col :span="8">
-                <div class="info-item">
-                  <div class="info-label">目标宿舍</div>
-                  <div class="info-value">{{ item.targetDorm }}</div>
-                </div>
-              </el-col>
-            </el-row>
-            
-            <div class="reason-section">
-              <div class="info-label">调换原因</div>
-              <div class="reason-text">{{ item.reason }}</div>
-            </div>
-            
-            <div v-if="item.urgency" class="urgency-section">
-              <el-tag :type="getUrgencyTagType(item.urgency)" size="small">
-                紧急程度：{{ item.urgency }}
+              <div class="switch-info">
+                <div class="switch-title">调换申请 #{{ item.id }}</div>
+                <div class="switch-time">{{ formatDate(item.applyTime || item.createdAt) }}</div>
+              </div>
+              <el-tag :type="getStatusTagType(item.status)" size="large">
+                {{ item.status }}
               </el-tag>
             </div>
-          </div>
+            
+            <div class="switch-content">
+              <el-row :gutter="20">
+                <el-col :span="8">
+                  <div class="info-item">
+                    <div class="info-label">申请人学号</div>
+                    <div class="info-value">{{ item.applicantId }}</div>
+                  </div>
+                </el-col>
+                <el-col :span="8">
+                  <div class="info-item">
+                    <div class="info-label">当前床位</div>
+                    <div class="info-value">{{ item.currentBedId }}</div>
+                  </div>
+                </el-col>
+                <el-col :span="8">
+                  <div class="info-item">
+                    <div class="info-label">目标床位</div>
+                    <div class="info-value">{{ item.targetBedId || '-' }}</div>
+                  </div>
+                </el-col>
+              </el-row>
+              
+              <div class="reason-section" v-if="item.reason">
+                <div class="info-label">调换原因</div>
+                <div class="reason-text">{{ item.reason }}</div>
+              </div>
+            </div>
           
           <div class="switch-footer">
             <div class="switch-actions">
-              <el-button size="small" @click="viewDetail(item)">查看详情</el-button>
               <el-button 
                 size="small" 
                 type="danger" 
@@ -111,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { api } from '../api'
@@ -178,26 +176,32 @@ const loadSwitches = async () => {
     const response = await api.listMySwitches(user.value.id, params)
     const data = response.data.data
     
-    if (data && data.content) {
-      switches.value = data.content
+    // Handle both List and paginated response
+    let switchList: any[] = []
+    if (Array.isArray(data)) {
+      // Response is a simple List
+      switchList = data
+      pagination.total = switchList.length
+    } else if (data && data.content) {
+      // Response is paginated
+      switchList = data.content
       pagination.total = data.totalElements
-    } else {
-      switches.value = []
-      pagination.total = 0
     }
+    
+    // Apply status filter if needed
+    if (status.value && status.value !== '') {
+      switchList = switchList.filter(s => s.status === status.value)
+    }
+    
+    switches.value = switchList
   } catch (error) {
     console.error('加载调换申请失败:', error)
     ElMessage.error('加载申请列表失败')
     switches.value = []
+    pagination.total = 0
   } finally {
     loading.value = false
   }
-}
-
-// 查看详情
-const viewDetail = (item: any) => {
-  ElMessage.info(`查看申请详情: ${item.id}`)
-  // 这里可以打开详情弹窗或跳转到详情页面
 }
 
 // 取消申请
@@ -250,6 +254,11 @@ const goCreate = () => {
 }
 
 onMounted(() => {
+  loadSwitches()
+})
+
+// 页面激活时重新加载数据（从表单页返回时）
+onActivated(() => {
   loadSwitches()
 })
 </script>

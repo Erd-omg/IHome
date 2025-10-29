@@ -1,7 +1,5 @@
 <template>
   <div style="padding:24px;">
-    <el-page-header content="IHome 宿舍管理系统" />
-    
     <!-- 欢迎信息 -->
     <el-card style="margin:24px 0;">
       <template #header>
@@ -78,7 +76,7 @@
       <div v-if="notices.length > 0">
         <div v-for="notice in notices" :key="notice.id" class="notice-item" @click="viewNotice(notice.id)">
           <div class="notice-title">{{ notice.title }}</div>
-          <div class="notice-time">{{ formatDate(notice.publishTime) }}</div>
+          <div class="notice-time">{{ formatDate(notice.publishTime || notice.createTime) }}</div>
         </div>
       </div>
       <el-empty v-else description="暂无通知" />

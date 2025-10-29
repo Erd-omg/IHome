@@ -170,15 +170,9 @@ const loadNotifications = async () => {
   
   loading.value = true
   try {
-    // 学生端使用学生通知接口
-    if (receiverType.value === 'student') {
-      const { data } = await api.getStudentNotifications(receiverId.value)
-      notifications.value = data.data || []
-    } else {
-      // 管理员端使用管理员通知接口
-      const { data } = await api.getNotifications(receiverId.value, receiverType.value)
-      notifications.value = data.data || []
-    }
+    // 使用统一的通知接口
+    const { data } = await api.getMyNotifications()
+    notifications.value = data.data || []
   } catch (error) {
     console.error('加载通知失败:', error)
     ElMessage.error('加载通知失败')
@@ -193,7 +187,7 @@ const loadUnreadCount = async () => {
   
   try {
     const { data } = await api.getUnreadCount(receiverId.value, receiverType.value)
-    unreadCount.value = data.data?.unreadCount || 0
+    unreadCount.value = data.data || 0
   } catch (error) {
     console.error('加载未读数量失败:', error)
   }
@@ -208,7 +202,6 @@ const markAsRead = async (notification: any) => {
     notification.isRead = true
     notification.readTime = new Date().toISOString()
     unreadCount.value = Math.max(0, unreadCount.value - 1)
-    ElMessage.success('已标记为已读')
   } catch (error) {
     console.error('标记已读失败:', error)
     ElMessage.error('标记已读失败')

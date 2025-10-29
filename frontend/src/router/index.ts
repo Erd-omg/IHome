@@ -19,6 +19,11 @@ import AdminStudents from '../views/AdminStudents.vue'
 import AdminDormitories from '../views/AdminDormitories.vue'
 import AdminAllocations from '../views/AdminAllocations.vue'
 import AdminNotifications from '../views/AdminNotifications.vue'
+import AdminStudentImport from '../views/AdminStudentImport.vue'
+import BedSelection from '../views/BedSelection.vue'
+import ExchangeRecommendations from '../views/ExchangeRecommendations.vue'
+import LifestyleTags from '../views/LifestyleTags.vue'
+import RepairFeedback from '../views/RepairFeedback.vue'
 // lazy for heavy admin lists
 
 const routes: Array<RouteRecordRaw> = [
@@ -36,7 +41,11 @@ const routes: Array<RouteRecordRaw> = [
       { path: 'exchange', name: 'exchange-list', component: ExchangeList, meta: { requiresAuth: true } },
       { path: 'exchange/new', name: 'exchange-new', component: ExchangeForm, meta: { requiresAuth: true } },
       { path: 'dorm-search', name: 'dorm-search', component: DormSearch, meta: { requiresAuth: true } },
-      { path: 'payment-abnormal', name: 'payment-abnormal', component: PaymentAbnormal, meta: { requiresAuth: true } }
+      { path: 'payment-abnormal', name: 'payment-abnormal', component: PaymentAbnormal, meta: { requiresAuth: true } },
+      { path: 'bed-selection', name: 'bed-selection', component: BedSelection, meta: { requiresAuth: true } },
+      { path: 'exchange-recommendations', name: 'exchange-recommendations', component: ExchangeRecommendations, meta: { requiresAuth: true } },
+      { path: 'lifestyle-tags', name: 'lifestyle-tags', component: LifestyleTags, meta: { requiresAuth: true } },
+      { path: 'repair-feedback', name: 'repair-feedback', component: RepairFeedback, meta: { requiresAuth: true } }
     ]
   }
   ,
@@ -49,7 +58,8 @@ const routes: Array<RouteRecordRaw> = [
       { path: 'notifications', name: 'admin-notifications', component: AdminNotifications, meta: { requiresAdmin: true } },
       { path: 'repairs', name: 'admin-repairs', component: () => import('../views/AdminRepairs.vue'), meta: { requiresAdmin: true } },
       { path: 'payments', name: 'admin-payments', component: () => import('../views/AdminPayments.vue'), meta: { requiresAdmin: true } },
-      { path: 'exchanges', name: 'admin-exchanges', component: () => import('../views/AdminExchanges.vue'), meta: { requiresAdmin: true } }
+      { path: 'exchanges', name: 'admin-exchanges', component: () => import('../views/AdminExchanges.vue'), meta: { requiresAdmin: true } },
+      { path: 'student-import', name: 'admin-student-import', component: AdminStudentImport, meta: { requiresAdmin: true } }
     ]
   }
 ]

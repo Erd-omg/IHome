@@ -1,1 +1,0 @@
-"id"	"weight_type"	"weight_value"	"description"	"enabled"	"last_updated"	"created_at"

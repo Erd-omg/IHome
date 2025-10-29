@@ -24,13 +24,17 @@ export const api = {
   loginAdmin: (id: string, password: string) => http.post('/admin/login', { id, password }),
   registerStudent: (payload: any) => http.post('/students/register', payload),
   getStudent: (id: string) => http.get(`/students/${id}`),
+  getStudentAdmin: (id: string) => http.get(`/admin/students/${id}`),
   updateStudent: (id: string, payload: any) => http.put(`/students/${id}`, payload),
 
   // dorms
   listDorms: (params?: PaginationParams) => http.get('/dorms', { params }),
   listBeds: (dormitoryId: string, params?: PaginationParams) => http.get(`/dorms/${dormitoryId}/beds`, { params }),
+  getDormitoryDetail: (dormitoryId: string) => http.get(`/dorms/${dormitoryId}/detail`),
+  searchBeds: (keyword?: string) => http.get('/beds/search', { params: { keyword } }),
   chooseBed: (studentId: string, bedId: string) => http.post('/dorms/choose-bed', null, { params: { studentId, bedId } }),
   checkout: (studentId: string) => http.post('/dorms/checkout', null, { params: { studentId } }),
+  checkoutAllocation: (allocationId: number, payload: any) => http.put(`/admin/allocations/${allocationId}/checkout`, payload),
 
   // payments
   createPayment: (payload: any) => http.post('/payments', payload),
@@ -94,22 +98,28 @@ export const api = {
   // allocations
   getCurrentAllocation: (studentId: string) => http.get(`/students/${studentId}/current-allocation`),
   getAllocationHistory: (studentId: string) => http.get(`/students/${studentId}/allocations`),
+  allocateStudent: (payload: any) => http.post('/admin/allocations', payload),
+  searchStudents: (keyword?: string) => http.get('/admin/students/search', { params: { keyword } }),
+  searchBedsAdmin: (keyword?: string) => http.get('/admin/beds/search', { params: { keyword } }),
   
   // student notifications
   getStudentNotifications: (studentId: string) => http.get(`/students/${studentId}/notifications`),
+  // 使用统一的通知接口
+  getMyNotifications: () => http.get('/notifications/my-notifications'),
 
   // notifications
   getNotifications: (receiverId: string, receiverType: string) => http.get('/notifications/list', { params: { receiverId, receiverType } }),
   getUnreadNotifications: (receiverId: string, receiverType: string) => http.get('/notifications/unread', { params: { receiverId, receiverType } }),
   getUnreadCount: (receiverId: string, receiverType: string) => http.get('/notifications/unread-count', { params: { receiverId, receiverType } }),
   markAsRead: (notificationId: number, receiverId: string, receiverType: string) => http.post(`/notifications/${notificationId}/read`, null, { params: { receiverId, receiverType } }),
-  markAllAsRead: (receiverId: string, receiverType: string) => http.post('/notifications/mark-all-read', null, { params: { receiverId, receiverType } }),
-  deleteNotification: (notificationId: number, receiverId: string, receiverType: string) => http.delete(`/notifications/${notificationId}`, { params: { receiverId, receiverType } }),
+  markAllAsRead: (receiverId: string, receiverType: string) => http.put('/notifications/mark-all-read', null, { params: { receiverId, receiverType } }),
+  deleteNotification: (notificationId: number, receiverId: string, receiverType: string) => http.delete(`/notifications/${notificationId}`),
   
   // admin notifications
   createNotification: (notification: any) => http.post('/notifications/create', notification),
   sendSystemNotification: (request: any) => http.post('/notifications/send-system', request),
-  cleanExpiredNotifications: () => http.post('/notifications/clean-expired')
+  cleanExpiredNotifications: () => http.post('/notifications/clean-expired'),
+  deleteNotificationAdmin: (notificationId: number) => http.delete(`/admin/notifications/${notificationId}`)
 }
 
 export default api

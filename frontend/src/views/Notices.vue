@@ -1,6 +1,11 @@
 <template>
   <div style="padding:24px;">
-    <el-page-header content="通知公告" @back="$router.back()" />
+    <div style="margin-bottom: 16px;">
+      <el-button type="text" @click="$router.back()" style="padding: 0;">
+        <span style="font-size: 16px;">← 返回</span>
+      </el-button>
+    </div>
+    <h2 style="margin: 0; font-size: 20px; font-weight: 600;">通知公告</h2>
     
     <!-- 搜索筛选 -->
     <el-card style="margin-top:16px;">

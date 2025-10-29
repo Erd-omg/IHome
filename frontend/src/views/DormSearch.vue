@@ -1,34 +1,29 @@
 <template>
   <div style="padding:24px;">
-    <el-page-header content="宿舍信息查询" @back="$router.back()" />
+    <div style="margin-bottom: 16px;">
+      <el-button type="text" @click="$router.back()" style="padding: 0;">
+        <span style="font-size: 16px;">← 返回</span>
+      </el-button>
+    </div>
+    <h2 style="margin: 0; font-size: 20px; font-weight: 600;">宿舍信息查询</h2>
     <el-card style="margin-top:12px;">
       <el-form :inline="true" :model="searchForm">
         <el-form-item label="宿舍号">
           <el-input v-model="searchForm.dormNo" placeholder="请输入宿舍号" clearable />
         </el-form-item>
         <el-form-item label="楼栋">
-          <el-select v-model="searchForm.buildingId" placeholder="请选择楼栋" clearable>
-            <el-option label="A栋" value="A01" />
-            <el-option label="B栋" value="B01" />
-            <el-option label="C栋" value="C01" />
+          <el-select v-model="searchForm.buildingId" placeholder="请选择楼栋" clearable style="width: 200px;">
+            <el-option label="一号男生公寓" value="B001" />
+            <el-option label="二号女生公寓" value="B002" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
-          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable>
+          <el-select v-model="searchForm.status" placeholder="请选择状态" clearable style="width: 150px;">
             <el-option label="可用" value="可用" />
             <el-option label="已满" value="已满" />
             <el-option label="维修中" value="维修中" />
+            <el-option label="停用" value="停用" />
           </el-select>
-        </el-form-item>
-        <el-form-item label="创建时间">
-          <el-date-picker 
-            v-model="searchForm.createRange" 
-            type="daterange" 
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            clearable
-          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">搜索</el-button>
@@ -53,7 +48,7 @@
       >
         <el-table-column prop="id" label="宿舍号" sortable="custom" />
         <el-table-column prop="buildingId" label="楼栋" sortable="custom" />
-        <el-table-column prop="name" label="房间名称" />
+        <el-table-column prop="roomNumber" label="房间号" />
         <el-table-column prop="bedCount" label="床位总数" sortable="custom" />
         <el-table-column prop="currentOccupancy" label="当前入住" sortable="custom" />
         <el-table-column prop="status" label="状态">
@@ -95,6 +90,58 @@
         />
       </div>
     </el-card>
+
+    <!-- 宿舍详情弹窗 -->
+    <el-dialog v-model="showDetailDialog" title="宿舍详情" width="800px" v-loading="loadingDetail">
+      <div v-if="currentDorm">
+        <el-descriptions :column="2" border>
+          <el-descriptions-item label="宿舍ID">{{ currentDorm.id }}</el-descriptions-item>
+          <el-descriptions-item label="楼栋">{{ currentDorm.buildingId }}</el-descriptions-item>
+          <el-descriptions-item label="房间号">{{ currentDorm.roomNumber }}</el-descriptions-item>
+          <el-descriptions-item label="楼层">{{ currentDorm.floorNumber }}楼</el-descriptions-item>
+          <el-descriptions-item label="房型">{{ currentDorm.roomType || '标准间' }}</el-descriptions-item>
+          <el-descriptions-item label="床位总数">{{ currentDorm.bedCount }}</el-descriptions-item>
+          <el-descriptions-item label="当前入住">{{ currentDorm.currentOccupancy }}</el-descriptions-item>
+          <el-descriptions-item label="空缺床位">
+            {{ currentDorm.bedCount - currentDorm.currentOccupancy }}
+          </el-descriptions-item>
+          <el-descriptions-item label="入住率">
+            {{ currentDorm.bedCount > 0 ? Math.round((currentDorm.currentOccupancy / currentDorm.bedCount) * 100) : 0 }}%
+          </el-descriptions-item>
+          <el-descriptions-item label="状态" :span="2">
+            <el-tag :type="getStatusTagType(currentDorm.status)">
+              {{ currentDorm.status }}
+            </el-tag>
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <!-- 床位信息 -->
+        <div style="margin-top: 24px;">
+          <h3 style="margin-bottom: 16px; font-size: 16px; font-weight: 600;">床位信息</h3>
+          <el-table :data="currentDorm.beds || []" border>
+            <el-table-column prop="bedNumber" label="床号" width="80" />
+            <el-table-column prop="bedType" label="床型" width="100" />
+            <el-table-column prop="status" label="状态" width="100">
+              <template #default="{ row }">
+                <el-tag :type="row.status === '可用' ? 'success' : 'danger'" size="small">
+                  {{ row.status }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="studentName" label="入住学生" />
+            <el-table-column prop="studentId" label="学号" />
+            <el-table-column label="性别/学院">
+              <template #default="{ row }">
+                {{ row.studentGender || '' }} {{ row.studentGender && row.studentCollege ? '|' : '' }} {{ row.studentCollege || '' }}
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+      <template #footer>
+        <el-button @click="showDetailDialog = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -110,8 +157,7 @@ const loading = ref(false)
 const searchForm = reactive({
   dormNo: '',
   buildingId: '',
-  status: '',
-  createRange: [] as any
+  status: ''
 })
 
 // 分页参数
@@ -156,10 +202,6 @@ async function loadDormitories() {
     if (searchForm.status) {
       params.status = searchForm.status
     }
-    if (searchForm.createRange && searchForm.createRange.length === 2) {
-      params.startDate = searchForm.createRange[0]
-      params.endDate = searchForm.createRange[1]
-    }
     
     // 添加排序参数
     if (sortParams.sortBy) {
@@ -200,7 +242,6 @@ function handleReset() {
   searchForm.dormNo = ''
   searchForm.buildingId = ''
   searchForm.status = ''
-  searchForm.createRange = []
   pagination.page = 1
   loadDormitories()
 }
@@ -225,10 +266,24 @@ function handleSizeChange(size: number) {
   loadDormitories()
 }
 
+const showDetailDialog = ref(false)
+const currentDorm = ref<any>(null)
+const loadingDetail = ref(false)
+
 // 查看详情
-function viewDetail(row: any) {
-  ElMessage.info(`查看宿舍详情: ${row.id}`)
-  // 这里可以打开详情弹窗或跳转到详情页面
+async function viewDetail(row: any) {
+  currentDorm.value = row
+  showDetailDialog.value = true
+  loadingDetail.value = true
+  
+  try {
+    const response = await api.getDormitoryDetail(row.id)
+    currentDorm.value = response.data.data
+  } catch (error: any) {
+    ElMessage.error(error.message || '加载宿舍详情失败')
+  } finally {
+    loadingDetail.value = false
+  }
 }
 
 

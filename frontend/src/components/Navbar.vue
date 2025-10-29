@@ -9,10 +9,6 @@
       <el-menu-item index="/notices">通知公告</el-menu-item>
     </el-menu>
     <div class="right">
-      <el-input v-model="keyword" placeholder="请输入您想查找的信息" size="small" class="search" />
-      <el-button type="primary" size="small" @click="handleSearch">搜索</el-button>
-      <el-divider direction="vertical" />
-      
       <!-- 通知中心 -->
       <NotificationCenter v-if="user" />
       <el-divider direction="vertical" v-if="user" />
@@ -21,7 +17,7 @@
       <div v-if="user" class="user-info">
         <el-dropdown @command="handleUserCommand">
           <div class="user-dropdown">
-            <el-avatar :size="32" :src="user.avatar">
+            <el-avatar :size="32">
               {{ user.name?.charAt(0) }}
             </el-avatar>
             <span class="user-name">{{ user.name }}</span>
@@ -59,19 +55,9 @@ const store = useStore()
 
 const active = computed(() => route.path)
 const user = computed(() => store.state.user)
-const keyword = ref('')
 
 function onSelect(path: string) { 
   router.push(path) 
-}
-
-function handleSearch() {
-  if (!keyword.value.trim()) {
-    ElMessage.warning('请输入搜索关键词')
-    return
-  }
-  // 这里可以实现搜索功能
-  ElMessage.info(`搜索: ${keyword.value}`)
 }
 
 function handleUserCommand(command: string) {
@@ -121,10 +107,6 @@ function handleLogout() {
   display:flex; 
   align-items:center; 
   gap:12px; 
-}
-
-.search { 
-  width:280px; 
 }
 
 .user-info {
