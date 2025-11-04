@@ -79,6 +79,7 @@ application-local.yml
 # 环境特定配置（可能包含敏感信息）
 backend/src/main/resources/application-prod.yml
 backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-dev.yml
 
 # 注意：
 # 1. application.yml 应该被提交，但需要将密码改为占位符
