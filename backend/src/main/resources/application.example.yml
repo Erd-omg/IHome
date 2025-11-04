@@ -1,0 +1,65 @@
+# IHome 应用配置文件示例
+# 复制此文件为 application.yml 并填入实际的配置信息
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  address: 0.0.0.0  # 允许外部访问
+
+spring:
+  datasource:
+    # 数据库连接配置
+    url: jdbc:mysql://127.0.0.1:3306/ihome?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true
+    username: root                      # 数据库用户名（请修改）
+    password: your_password             # 数据库密码（请修改）
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-init-sql: SET NAMES utf8mb4
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  level:
+    root: info
+    com.ihome: debug
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  show-actuator: false
+  group-configs:
+    - group: 'default'
+      display-name: 'IHome宿舍管理系统API'
+      paths-to-match: '/**'
+
+# JWT配置
+jwt:
+  secret: your-jwt-secret-key-here-must-be-at-least-256-bits-long-for-security
+  expiration: 7200000  # 2小时，单位毫秒
+  refresh-expiration: 604800000  # 7天，单位毫秒
+
+# 文件上传配置
+file:
+  upload:
+    path: uploads/
+    max-size: 10MB
+    allowed-types: jpg,jpeg,png,gif,pdf,doc,docx
+
