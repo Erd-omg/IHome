@@ -30,6 +30,8 @@ public class TestUtils {
         student.setMajor("测试专业");
         student.setGrade("2024");
         student.setStatus("在校");
+        // 设置默认密码（使用 BCrypt 加密后的密码，测试环境使用固定值）
+        student.setPassword("$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy"); // password
         return student;
     }
 

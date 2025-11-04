@@ -36,6 +36,9 @@ public class ElectricityServiceTest {
     private StudentMapper studentMapper;
     
     @Mock
+    private DormitoryAllocationMapper allocationMapper;
+    
+    @Mock
     private NotificationService notificationService;
 
     @InjectMocks
@@ -44,6 +47,7 @@ public class ElectricityServiceTest {
     private ElectricityBill testBill;
     private ElectricityReminder testReminder;
     private Student testStudent;
+    private DormitoryAllocation testAllocation;
 
     @BeforeEach
     void setUp() {
@@ -85,6 +89,14 @@ public class ElectricityServiceTest {
         testStudent.setGender("男");
         testStudent.setMajor("计算机科学");
         testStudent.setStatus("在校");
+        
+        // 创建测试分配
+        testAllocation = new DormitoryAllocation();
+        testAllocation.setId(1);
+        testAllocation.setStudentId("S001");
+        testAllocation.setBedId("D001-B001");
+        testAllocation.setDormitoryId("D001");
+        testAllocation.setStatus("在住");
     }
 
     @Test
@@ -97,7 +109,11 @@ public class ElectricityServiceTest {
 
         // 模拟数据库查询
         when(billMapper.selectByBillMonth(billMonth)).thenReturn(new ArrayList<>());
-        when(billMapper.insert(any(ElectricityBill.class))).thenReturn(1);
+        when(billMapper.insert(any(ElectricityBill.class))).thenAnswer(invocation -> {
+            ElectricityBill bill = invocation.getArgument(0);
+            bill.setId(1L);  // 模拟数据库自动生成的ID
+            return 1;
+        });
 
         // 执行测试
         Map<String, Object> result = electricityService.createElectricityBill(
@@ -168,6 +184,7 @@ public class ElectricityServiceTest {
         String reminderMethod = "站内信";
 
         // 模拟数据库查询
+        when(allocationMapper.selectByStudentId(studentId)).thenReturn(testAllocation);
         when(reminderMapper.selectByStudentId(studentId)).thenReturn(null);
         when(reminderMapper.insert(any(ElectricityReminder.class))).thenReturn(1);
 
@@ -193,6 +210,7 @@ public class ElectricityServiceTest {
         String reminderMethod = "短信";
 
         // 模拟已存在提醒设置
+        when(allocationMapper.selectByStudentId(studentId)).thenReturn(testAllocation);
         when(reminderMapper.selectByStudentId(studentId)).thenReturn(testReminder);
         when(reminderMapper.updateById(any(ElectricityReminder.class))).thenReturn(1);
 
@@ -240,7 +258,11 @@ public class ElectricityServiceTest {
 
         // 模拟数据库查询
         when(billMapper.selectById(billId)).thenReturn(testBill);
-        when(paymentMapper.insert(any(ElectricityPayment.class))).thenReturn(1);
+        when(paymentMapper.insert(any(ElectricityPayment.class))).thenAnswer(invocation -> {
+            ElectricityPayment payment = invocation.getArgument(0);
+            payment.setId(1L);  // 模拟数据库自动生成的ID
+            return 1;
+        });
         when(billMapper.updateById(any(ElectricityBill.class))).thenReturn(1);
 
         // 执行测试
@@ -332,8 +354,11 @@ public class ElectricityServiceTest {
 
     @Test
     void testGetElectricityStatistics_Success() {
-        // 准备测试数据
-        List<ElectricityBill> allBills = Arrays.asList(testBill, createTestBill("D002", "已缴费"));
+        // 准备测试数据 - 使用当前月份确保统计正确
+        String currentMonth = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM"));
+        ElectricityBill bill1 = createTestBill("D001", "未缴费", currentMonth);
+        ElectricityBill bill2 = createTestBill("D002", "已缴费", currentMonth);
+        List<ElectricityBill> allBills = Arrays.asList(bill1, bill2);
 
         // 模拟数据库查询
         when(billMapper.selectList(null)).thenReturn(allBills);
@@ -374,10 +399,14 @@ public class ElectricityServiceTest {
     }
 
     private ElectricityBill createTestBill(String dormitoryId, String status) {
+        return createTestBill(dormitoryId, status, "2024-12");
+    }
+    
+    private ElectricityBill createTestBill(String dormitoryId, String status, String billMonth) {
         ElectricityBill bill = new ElectricityBill();
         bill.setId(2L);
         bill.setDormitoryId(dormitoryId);
-        bill.setBillMonth("2024-12");
+        bill.setBillMonth(billMonth);
         bill.setElectricityUsage(new BigDecimal("80.00"));
         bill.setUnitPrice(new BigDecimal("0.5"));
         bill.setTotalAmount(new BigDecimal("40.00"));

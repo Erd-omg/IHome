@@ -97,11 +97,11 @@ IHome是一个基于Spring Boot + Vue 3的现代化宿舍管理系统，旨在�
 
 | 技术 | 版本 | 说明 |
 |------|------|------|
-| Spring Boot | 3.x | 核心框架 |
-| MyBatis Plus | 3.5.x | ORM框架 |
+| Spring Boot | 3.3.2 | 核心框架 |
+| MyBatis Plus | 3.5.7 | ORM框架（使用 `mybatis-plus-spring-boot3-starter` 支持 Spring Boot 3.x） |
 | Spring Security | 6.x | 安全框架 |
 | MySQL | 8.0 | 数据库 |
-| JWT | - | 认证机制 |
+| JWT | 0.11.5 | 认证机制 |
 | Maven | 3.9+ | 构建工具 |
 
 ### 前端技术栈
@@ -399,6 +399,62 @@ IHome/
        }
    }
    ```
+
+---
+
+## 📊 测试状态
+
+**当前测试统计**（最后更新: 2025-11-04）:
+- **总测试数**: 168个（100%通过）
+
+**通过的测试类**（共31个）:
+**Controller层测试**（24个，全部通过）:
+1. AdminControllerTest (10 tests)
+2. AllocationControllerTest (3 tests)
+3. AllocationFeedbackControllerTest (6 tests)
+4. AuthControllerTest (4 tests)
+5. BedControllerTest (8 tests)
+6. DataExportControllerTest (5 tests)
+7. DormitoryControllerTest (6 tests)
+8. DormitorySwitchControllerTest (5 tests)
+9. ElectricityControllerTest (11 tests)
+10. ExchangeRecommendationControllerTest (2 tests)
+11. FileUploadControllerTest (3 tests)
+12. HealthControllerTest (1 test)
+13. IntelligentAllocationControllerTest (5 tests)
+14. LifestyleTagControllerTest (4 tests)
+15. NoticeControllerTest (4 tests)
+16. NotificationControllerTest (6 tests)
+17. PasswordControllerTest (2 tests)
+18. PaymentControllerTest (4 tests)
+19. QuestionnaireControllerTest (3 tests)
+20. RepairControllerTest (5 tests)
+21. RepairFeedbackControllerTest (5 tests)
+22. RootControllerTest (1 test)
+23. StatisticsControllerTest (5 tests)
+24. StudentControllerTest (7 tests)
+
+**Service层测试**（7个，全部通过）:
+1. AllocationServiceTest (11 tests) - 包含性别分离、专业优先、床位偏好等测试
+2. DormitoryServiceTest (7 tests)
+3. DormitorySwitchServiceTest (4 tests)
+4. ElectricityServiceTest (11 tests)
+5. NotificationServiceTest (6 tests)
+6. RepairFeedbackServiceTest (9 tests)
+7. StatisticsServiceTest (5 tests)
+
+详细测试文档请参考: [backend/src/test/README.md](backend/src/test/README.md)
+
+**⚠️ 常见问题: Maven权限错误**
+
+如果生成测试报告时遇到 `AccessDeniedException` 错误（Maven尝试在 `C:\Program Files\` 等需要管理员权限的目录写入文件），请使用以下命令指定本地仓库路径：
+
+```bash
+cd backend
+mvn clean test surefire-report:report -Dmaven.repo.local=%USERPROFILE%\.m2\repository
+```
+
+这个方法会将Maven本地仓库设置到用户目录（`C:\Users\用户名\.m2\repository`），无需管理员权限。
 
 ---
 

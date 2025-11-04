@@ -1,0 +1,65 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  address: 0.0.0.0
+
+spring:
+  datasource:
+    # 测试环境使用H2内存数据库
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=MySQL;INIT=CREATE SCHEMA IF NOT EXISTS PUBLIC
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+    hikari:
+      connection-init-sql: SET NAMES utf8mb4
+    # 初始化数据库脚本 - 使用 schema.sql 而不是 database-init.sql
+    initialization-mode: always
+    continue-on-error: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  sql:
+    init:
+      mode: always
+      continue-on-error: true
+      schema-locations: classpath:schema-test.sql
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  level:
+    root: warn
+    com.ihome: debug
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+# JWT配置（测试环境）
+jwt:
+  secret: test-jwt-secret-key-for-testing-only-do-not-use-in-production
+  expiration: 7200000  # 2小时，单位毫秒
+  refresh-expiration: 604800000  # 7天，单位毫秒
+
+# 文件上传配置
+file:
+  upload:
+    path: uploads/test/
+    max-size: 10MB
+    allowed-types: jpg,jpeg,png,gif,pdf,doc,docx
+
