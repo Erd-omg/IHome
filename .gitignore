@@ -131,13 +131,12 @@ personal/
 private/
 
 # AI开发相关（避免暴露AI开发痕迹）
-ai-*
-*ai*
-*AI*
-*assistant*
-*chatgpt*
-*cursor*
-*claude*
+# 只匹配特定目录下的AI相关文件，避免误匹配正常文件
+**/ai-*/
+**/assistant-*/
+**/chatgpt*/
+**/cursor-*/
+**/claude-*/
 
 # 开发笔记
 notes/
