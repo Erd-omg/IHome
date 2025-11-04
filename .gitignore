@@ -76,6 +76,7 @@ static/uploads/
 # 配置文件（包含敏感信息）
 application-prod.yml
 application-local.yml
+application-dev.yml
 # 环境特定配置（可能包含敏感信息）
 backend/src/main/resources/application-prod.yml
 backend/src/main/resources/application-local.yml

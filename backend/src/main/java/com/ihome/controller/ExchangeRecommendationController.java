@@ -47,12 +47,21 @@ public class ExchangeRecommendationController {
     @GetMapping("/for-student")
     @Operation(summary = "获取调换推荐列表", description = "获取基于匹配度算法的室友推荐列表")
     @PreAuthorize("hasRole('STUDENT')")
-    public ApiResponse<List<Map<String, Object>>> getRecommendations() {
+    public ApiResponse<List<Map<String, Object>>> getRecommendations(@RequestParam(required = false) String studentId) {
         try {
-            String studentId = SecurityContextHolder.getContext().getAuthentication().getName();
+            if (studentId == null || studentId.isEmpty()) {
+                org.springframework.security.core.Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication == null || authentication.getName() == null) {
+                    return ApiResponse.error("未获取到学生ID");
+                }
+                studentId = authentication.getName();
+            }
+
+            // 使用 final 变量保存 studentId，以便在 lambda 表达式中使用
+            final String finalStudentId = studentId;
 
             // 获取学生当前宿舍信息
-            var currentAllocation = getCurrentAllocation(studentId);
+            var currentAllocation = getCurrentAllocation(finalStudentId);
             if (currentAllocation == null) {
                 return ApiResponse.error("您还没有分配宿舍");
             }
@@ -63,14 +72,14 @@ public class ExchangeRecommendationController {
             // 获取所有其他学生（排除自己和室友）
             List<Student> allStudents = studentMapper.selectList(null);
             List<Student> candidateStudents = allStudents.stream()
-                .filter(s -> !s.getId().equals(studentId) && !roommateIds.contains(s.getId()))
+                .filter(s -> !s.getId().equals(finalStudentId) && !roommateIds.contains(s.getId()))
                 .collect(Collectors.toList());
 
             // 计算匹配度并生成推荐
             List<Map<String, Object>> recommendations = new ArrayList<>();
 
             for (Student candidate : candidateStudents) {
-                double compatibilityScore = calculateCompatibility(studentId, candidate.getId());
+                double compatibilityScore = calculateCompatibility(finalStudentId, candidate.getId());
                 
                 if (compatibilityScore > 0.5) { // 只推荐匹配度超过50%的
                     Map<String, Object> recommendation = new HashMap<>();
@@ -79,7 +88,7 @@ public class ExchangeRecommendationController {
                     recommendation.put("targetStudentMajor", candidate.getMajor());
                     recommendation.put("targetStudentCollege", candidate.getCollege());
                     recommendation.put("compatibilityScore", compatibilityScore);
-                    recommendation.put("recommendationReason", generateRecommendationReason(candidate.getId(), compatibilityScore));
+                    recommendation.put("recommendationReason", generateRecommendationReason(finalStudentId, candidate.getId(), compatibilityScore));
                     
                     recommendations.add(recommendation);
                 }
@@ -280,11 +289,10 @@ public class ExchangeRecommendationController {
     /**
      * 生成推荐理由
      */
-    private String generateRecommendationReason(String studentId2, double score) {
+    private String generateRecommendationReason(String studentId1, String studentId2, double score) {
         StringBuilder reason = new StringBuilder();
         
-        String studentId = SecurityContextHolder.getContext().getAuthentication().getName();
-        Student student1 = studentMapper.selectById(studentId);
+        Student student1 = studentMapper.selectById(studentId1);
         Student student2 = studentMapper.selectById(studentId2);
 
         if (student1 != null && student2 != null && student1.getMajor() != null && student2.getMajor() != null && student1.getMajor().equals(student2.getMajor())) {

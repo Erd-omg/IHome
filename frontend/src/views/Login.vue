@@ -108,10 +108,11 @@ const handlePasswordLogin = async () => {
         router.push('/')
       }
     } else {
-      ElMessage.error(result.message)
+      ElMessage.error(result.message || '登录失败')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('登录失败:', error)
+    ElMessage.error(error.message || '登录失败，请重试')
   } finally {
     loading.value = false
   }

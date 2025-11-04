@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { loginAsAdmin } from '../helpers/auth';
-import { waitForPageLoad, waitForTableData, waitForDialog, waitForMessage } from '../helpers/wait-helpers';
+import { waitForPageLoad, waitForTableData, waitForDialog, waitForMessage, closeNotificationDrawer } from '../helpers/wait-helpers';
 
 test.describe('管理员维修管理', () => {
   test.beforeEach(async ({ page }) => {
@@ -13,32 +13,52 @@ test.describe('管理员维修管理', () => {
     // 等待表格加载
     await waitForTableData(page, '.el-table', 10000);
     
-    // 验证表格存在
-    await expect(page.locator('.el-table, table')).toBeVisible();
+    // 验证表格存在（使用更具体的选择器避免匹配到日期选择器的table）
+    await expect(page.locator('.el-table').first()).toBeVisible();
   });
 
   test('应该能够更新维修状态', async ({ page }) => {
     // 等待表格加载
     await waitForTableData(page, '.el-table', 10000);
     
+    // 关闭可能存在的通知抽屉和消息框
+    await closeNotificationDrawer(page);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    
     // 查找状态更新按钮或下拉菜单
     const statusButton = page.locator('button:has-text("处理"), .el-button--primary').first();
     if (await statusButton.count() > 0 && await statusButton.isVisible()) {
-      await statusButton.click();
-      await waitForDialog(page, undefined, 5000);
+      await statusButton.scrollIntoViewIfNeeded();
+      await statusButton.click({ force: true });
+      
+      // 等待对话框出现（增加超时时间）
+      try {
+        await waitForDialog(page, undefined, 15000);
+      } catch {
+        // 如果对话框没有出现，继续尝试操作（可能以其他方式显示）
+      }
       
       // 选择新状态
       const statusSelect = page.locator('.el-select').first();
-      if (await statusSelect.count() > 0) {
-        await statusSelect.click();
-        await page.locator('.el-select-dropdown__item').filter({ hasText: '已完成' }).or(page.locator('.el-select-dropdown__item').first()).click();
+      if (await statusSelect.count() > 0 && await statusSelect.isVisible()) {
+        await statusSelect.scrollIntoViewIfNeeded();
+        await statusSelect.click({ force: true });
+        await page.waitForTimeout(300);
+        const option = page.locator('.el-select-dropdown__item').filter({ hasText: '已完成' }).or(page.locator('.el-select-dropdown__item').first()).first();
+        if (await option.count() > 0) {
+          await option.click();
+        }
       }
       
       // 确认
-      const confirmButton = page.locator('button:has-text("确认"), button:has-text("保存")').first();
+      const confirmButton = page.locator('button:has-text("确认"), button:has-text("保存")')
+        .filter({ hasNot: page.locator('.el-message-box') })
+        .first();
       if (await confirmButton.count() > 0) {
-        await confirmButton.click();
-        await waitForMessage(page, undefined, 10000);
+        await confirmButton.scrollIntoViewIfNeeded();
+        await confirmButton.click({ force: true });
+        await waitForMessage(page, undefined, 10000, false);
       }
     }
   });

@@ -106,7 +106,7 @@ test.describe('完整业务流程测试', () => {
     await waitForPageLoad(page);
     await waitForTableData(page, '.el-table', 10000);
     
-    // 管理员应该能看到学生提交的工单
-    await expect(page.locator('.el-table, table')).toBeVisible();
+    // 管理员应该能看到学生提交的工单（使用更具体的选择器避免匹配到日期选择器的table）
+    await expect(page.locator('.el-table').first()).toBeVisible();
   });
 });

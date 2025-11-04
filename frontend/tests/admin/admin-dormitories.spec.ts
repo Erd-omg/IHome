@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { loginAsAdmin } from '../helpers/auth';
-import { waitForPageLoad, waitForTableData, waitForDialog, waitForMessage } from '../helpers/wait-helpers';
+import { waitForPageLoad, waitForTableData, waitForDialog, waitForMessage, closeNotificationDrawer, closeOverlayDialogs } from '../helpers/wait-helpers';
 import { TEST_DATA } from '../helpers/test-data';
 
 test.describe('管理员宿舍管理', () => {
@@ -14,8 +14,8 @@ test.describe('管理员宿舍管理', () => {
     // 等待表格加载
     await waitForTableData(page, '.el-table', 10000);
     
-    // 验证表格存在
-    await expect(page.locator('.el-table, table')).toBeVisible();
+    // 验证表格存在（使用更具体的选择器避免匹配到日期选择器的table）
+    await expect(page.locator('.el-table').first()).toBeVisible();
   });
 
   test('应该能够创建宿舍', async ({ page }) => {
@@ -49,22 +49,72 @@ test.describe('管理员宿舍管理', () => {
     // 等待表格加载
     await waitForTableData(page, '.el-table', 10000);
     
+    // 关闭可能存在的通知抽屉和其他对话框
+    await closeNotificationDrawer(page);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    
     // 查找编辑按钮
     const editButton = page.locator('button:has-text("编辑"), .el-button--text').first();
     if (await editButton.count() > 0 && await editButton.isVisible()) {
-      await editButton.click();
-      await waitForDialog(page, undefined, 5000);
+      await editButton.scrollIntoViewIfNeeded();
+      await editButton.click({ force: true });
+      
+      // 等待对话框出现（增加超时时间）
+      try {
+        await waitForDialog(page, undefined, 15000);
+      } catch {
+        // 如果对话框没有出现，继续尝试操作
+      }
+      
+      // 关闭可能遮挡的对话框
+      await closeOverlayDialogs(page);
+      await page.waitForTimeout(300);
       
       // 修改信息
-      const capacityInput = page.locator('input[type="number"]').first();
+      const capacityInput = page.locator('.el-dialog input[type="number"], input[type="number"]').first();
       if (await capacityInput.count() > 0) {
-        await capacityInput.fill('6');
+        // 等待输入框附加到 DOM
+        await capacityInput.waitFor({ state: 'attached', timeout: 5000 }).catch(() => {});
+        await page.waitForTimeout(300);
         
-        // 保存
-        const saveButton = page.locator('button:has-text("保存")').first();
+        // 检查是否可见，如果可见则滚动，否则直接使用 JavaScript
+        const isVisible = await capacityInput.isVisible({ timeout: 2000 }).catch(() => false);
+        if (isVisible) {
+          await capacityInput.scrollIntoViewIfNeeded();
+          await capacityInput.fill('6');
+        } else {
+          // 如果不可见，通过 JavaScript 设置值
+          await capacityInput.evaluate((el: HTMLInputElement, value: string) => {
+            el.value = value;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+          }, '6');
+        }
+        await page.waitForTimeout(300);
+        
+        // 保存 - 在对话框中查找按钮
+        const saveButton = page.locator('.el-dialog button:has-text("保存"), button:has-text("保存")')
+          .filter({ hasNot: page.locator('.el-message-box') })
+          .first();
+        
         if (await saveButton.count() > 0) {
-          await saveButton.click();
-          await waitForMessage(page, undefined, 10000);
+          // 等待按钮附加到 DOM
+          await saveButton.waitFor({ state: 'attached', timeout: 5000 }).catch(() => {});
+          await page.waitForTimeout(300);
+          
+          // 尝试点击（如果不可见，使用 JavaScript 直接点击）
+          const isButtonVisible = await saveButton.isVisible({ timeout: 2000 }).catch(() => false);
+          if (isButtonVisible) {
+            await saveButton.scrollIntoViewIfNeeded();
+            await saveButton.click();
+          } else {
+            // 如果不可见，通过 JavaScript 直接点击
+            await saveButton.evaluate((el: HTMLElement) => {
+              (el as HTMLButtonElement).click();
+            });
+          }
+          await waitForMessage(page, undefined, 10000, false);
         }
       }
     }

@@ -14,8 +14,8 @@ test.describe('管理员学生管理', () => {
     // 等待表格加载
     await waitForTableData(page, '.el-table', 10000);
     
-    // 验证表格存在
-    await expect(page.locator('.el-table, table')).toBeVisible();
+    // 验证表格存在（使用更具体的选择器避免匹配到日期选择器的table）
+    await expect(page.locator('.el-table').first()).toBeVisible();
   });
 
   test('应该能够搜索学生', async ({ page }) => {
@@ -37,19 +37,22 @@ test.describe('管理员学生管理', () => {
       await createButton.click();
       await waitForDialog(page, undefined, 5000);
       
-      // 填写学生信息
-      const idInput = page.locator('input[placeholder*="学号"], input[name*="id"]').first();
+      // 等待对话框完全打开后再操作
+      await page.waitForTimeout(500);
+      
+      // 填写学生信息（使用对话框内的选择器）
+      const idInput = page.locator('.el-dialog input[placeholder*="学号"], .el-dialog input[name*="id"], .el-drawer input[placeholder*="学号"]').first();
       if (await idInput.count() > 0) {
         await idInput.fill(TEST_DATA.student.id);
       }
       
-      const nameInput = page.locator('input[placeholder*="姓名"], input[name*="name"]').first();
+      const nameInput = page.locator('.el-dialog input[placeholder*="姓名"], .el-dialog input[name*="name"], .el-drawer input[placeholder*="姓名"]').first();
       if (await nameInput.count() > 0) {
         await nameInput.fill(TEST_DATA.student.name);
       }
       
       // 提交表单
-      const submitButton = page.locator('button:has-text("提交"), button:has-text("确认"), button[type="submit"]').first();
+      const submitButton = page.locator('.el-dialog button:has-text("提交"), .el-dialog button:has-text("确认"), .el-drawer button:has-text("提交")').first();
       if (await submitButton.count() > 0) {
         await submitButton.click();
         await waitForMessage(page, undefined, 10000);
@@ -67,13 +70,16 @@ test.describe('管理员学生管理', () => {
       await editButton.click();
       await waitForDialog(page, undefined, 5000);
       
-      // 修改信息
-      const nameInput = page.locator('input[placeholder*="姓名"]').first();
+      // 等待对话框完全打开后再操作
+      await page.waitForTimeout(500);
+      
+      // 修改信息（使用对话框内的选择器）
+      const nameInput = page.locator('.el-dialog input[placeholder*="姓名"], .el-drawer input[placeholder*="姓名"]').first();
       if (await nameInput.count() > 0) {
         await nameInput.fill('修改后的姓名');
         
         // 保存
-        const saveButton = page.locator('button:has-text("保存"), button:has-text("确认")').first();
+        const saveButton = page.locator('.el-dialog button:has-text("保存"), .el-dialog button:has-text("确认"), .el-drawer button:has-text("保存")').first();
         if (await saveButton.count() > 0) {
           await saveButton.click();
           await waitForMessage(page, undefined, 10000);

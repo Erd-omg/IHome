@@ -67,7 +67,7 @@ const generateMockData = () => {
 
 const mockData = generateMockData()
 
-// 学生登录
+// 学生登录 - 格式需要匹配后端JwtResponse
 Mock.mock('/api/students/login', 'post', (options: any) => {
   const body = JSON.parse(options.body)
   if (body.id && body.password) {
@@ -75,17 +75,23 @@ Mock.mock('/api/students/login', 'post', (options: any) => {
       code: 0, 
       message: 'success', 
       data: { 
-        id: body.id, 
-        name: '张三',
-        token: 'mock-student-token',
-        refreshToken: 'mock-student-refresh-token'
+        accessToken: 'mock-student-token',
+        refreshToken: 'mock-student-refresh-token',
+        expiresIn: 600,
+        tokenType: 'Bearer',
+        userInfo: {
+          id: body.id, 
+          name: '张三',
+          email: 'student@example.com',
+          phone: '13800138000'
+        }
       } 
     }
   }
   return { code: -1, message: '学号或密码错误', data: null }
 })
 
-// 管理员登录
+// 管理员登录 - 格式需要匹配后端JwtResponse
 Mock.mock('/api/admin/login', 'post', (options: any) => {
   const body = JSON.parse(options.body)
   if (body.id && body.password) {
@@ -93,11 +99,16 @@ Mock.mock('/api/admin/login', 'post', (options: any) => {
       code: 0, 
       message: 'success', 
       data: { 
-        id: body.id, 
-        name: '管理员',
-        role: '系统管理员',
-        token: 'mock-admin-token',
-        refreshToken: 'mock-admin-refresh-token'
+        accessToken: 'mock-admin-token',
+        refreshToken: 'mock-admin-refresh-token',
+        expiresIn: 600,
+        tokenType: 'Bearer',
+        userInfo: {
+          id: body.id, 
+          name: '系统管理员',
+          role: '系统管理员',
+          email: 'admin@example.com'
+        }
       } 
     }
   }

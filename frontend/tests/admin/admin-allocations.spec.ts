@@ -13,8 +13,8 @@ test.describe('管理员分配管理', () => {
     // 等待表格加载
     await waitForTableData(page, '.el-table', 10000);
     
-    // 验证表格存在
-    await expect(page.locator('.el-table, table')).toBeVisible();
+    // 验证表格存在（使用更具体的选择器避免匹配到日期选择器的table）
+    await expect(page.locator('.el-table').first()).toBeVisible();
   });
 
   test('应该能够创建新分配', async ({ page }) => {
@@ -24,22 +24,32 @@ test.describe('管理员分配管理', () => {
       await createButton.click();
       await waitForDialog(page, undefined, 5000);
       
-      // 选择学生（如果有选择器）
-      const studentSelect = page.locator('.el-select').first();
+      // 等待对话框完全打开后再操作
+      await page.waitForTimeout(500);
+      
+      // 选择学生（如果有选择器）- 使用对话框内的选择器
+      const studentSelect = page.locator('.el-dialog .el-select, .el-drawer .el-select').first();
       if (await studentSelect.count() > 0) {
-        await studentSelect.click();
+        // 确保元素可见且可交互
+        await studentSelect.waitFor({ state: 'visible', timeout: 5000 });
+        await studentSelect.scrollIntoViewIfNeeded();
+        await studentSelect.click({ force: false });
+        await page.waitForTimeout(300);
         await page.locator('.el-select-dropdown__item').first().click();
       }
       
       // 选择床位
-      const bedSelect = page.locator('.el-select').nth(1);
+      const bedSelect = page.locator('.el-dialog .el-select, .el-drawer .el-select').nth(1);
       if (await bedSelect.count() > 0) {
-        await bedSelect.click();
+        await bedSelect.waitFor({ state: 'visible', timeout: 5000 });
+        await bedSelect.scrollIntoViewIfNeeded();
+        await bedSelect.click({ force: false });
+        await page.waitForTimeout(300);
         await page.locator('.el-select-dropdown__item').first().click();
       }
       
       // 提交
-      const submitButton = page.locator('button:has-text("提交"), button:has-text("确认")').first();
+      const submitButton = page.locator('.el-dialog button:has-text("提交"), .el-dialog button:has-text("确认"), .el-drawer button:has-text("提交")').first();
       if (await submitButton.count() > 0) {
         await submitButton.click();
         await waitForMessage(page, undefined, 10000);

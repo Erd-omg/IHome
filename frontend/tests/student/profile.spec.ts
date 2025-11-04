@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { loginAsStudent } from '../helpers/auth';
-import { waitForPageLoad, waitForMessage } from '../helpers/wait-helpers';
+import { waitForPageLoad, waitForMessage, closeNotificationDrawer } from '../helpers/wait-helpers';
 
 test.describe('学生个人资料', () => {
   test.beforeEach(async ({ page }) => {
@@ -43,6 +43,9 @@ test.describe('学生个人资料', () => {
     await page.goto('/lifestyle-tags');
     await waitForPageLoad(page);
     
+    // 先关闭可能存在的通知抽屉，避免遮挡按钮
+    await closeNotificationDrawer(page);
+    
     // 验证页面加载
     await expect(page.locator('body')).toBeVisible();
     
@@ -50,11 +53,21 @@ test.describe('学生个人资料', () => {
     const tagButton = page.locator('.tag, .el-tag, button').first();
     if (await tagButton.count() > 0 && await tagButton.isVisible()) {
       await tagButton.click();
+      await page.waitForTimeout(300);
       
-      // 保存
-      const saveButton = page.locator('button:has-text("保存"), button:has-text("提交")').first();
+      // 再次关闭通知抽屉，确保按钮可见
+      await closeNotificationDrawer(page);
+      
+      // 保存 - 使用更精确的选择器，排除通知抽屉中的按钮
+      const saveButton = page.locator('button:has-text("保存"), button:has-text("提交")')
+        .filter({ hasNot: page.locator('.notification-actions') })
+        .first();
+      
       if (await saveButton.count() > 0) {
-        await saveButton.click();
+        // 确保按钮可见且可交互
+        await saveButton.waitFor({ state: 'visible', timeout: 5000 });
+        await saveButton.scrollIntoViewIfNeeded();
+        await saveButton.click({ force: true }); // 使用 force 选项，如果被遮挡也强制点击
         await waitForMessage(page, undefined, 10000);
       }
     }

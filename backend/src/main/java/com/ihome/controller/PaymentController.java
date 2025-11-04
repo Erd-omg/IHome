@@ -108,6 +108,15 @@ public class PaymentController {
         return ApiResponse.ok(payments);
     }
 
+    @GetMapping("/{id}")
+    public ApiResponse<PaymentRecord> getPayment(@PathVariable Integer id) {
+        PaymentRecord payment = paymentMapper.selectById(id);
+        if (payment == null) {
+            return ApiResponse.error("缴费记录不存在");
+        }
+        return ApiResponse.ok(payment);
+    }
+
     @PutMapping("/{id}/status")
     public ApiResponse<?> updateStatus(@PathVariable Integer id, @RequestParam String status) {
         PaymentRecord pr = paymentMapper.selectById(id);

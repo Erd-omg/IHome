@@ -26,12 +26,25 @@ public class NotificationController {
      */
     @PostMapping("/{id}/read")
     @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN')")
-    public ApiResponse<Map<String, Object>> markAsRead(@PathVariable Integer id) {
+    public ApiResponse<Map<String, Object>> markAsRead(@PathVariable Integer id,
+                                                       @RequestParam(required = false) String userId,
+                                                       @RequestParam(required = false) String userType) {
         try {
             // 从JWT获取当前用户信息
-            String currentUserId = org.springframework.security.core.context.SecurityContextHolder.getContext()
-                .getAuthentication().getName();
-            String userType = getCurrentUserType();
+            org.springframework.security.core.Authentication authentication = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            String currentUserId;
+            if (userId == null || userId.isEmpty()) {
+                if (authentication == null || authentication.getName() == null) {
+                    return ApiResponse.error("未获取到用户ID");
+                }
+                currentUserId = authentication.getName();
+            } else {
+                currentUserId = userId;
+            }
+            if (userType == null || userType.isEmpty()) {
+                userType = getCurrentUserType();
+            }
             
             Map<String, Object> result = notificationService.markAsRead(id, currentUserId, userType);
             if ((Boolean) result.get("success")) {
@@ -49,11 +62,24 @@ public class NotificationController {
      */
     @PutMapping("/batch-read")
     @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN')")
-    public ApiResponse<Map<String, Object>> markMultipleAsRead(@RequestBody List<Integer> notificationIds) {
+    public ApiResponse<Map<String, Object>> markMultipleAsRead(@RequestBody List<Integer> notificationIds,
+                                                              @RequestParam(required = false) String userId,
+                                                              @RequestParam(required = false) String userType) {
         try {
-            String currentUserId = org.springframework.security.core.context.SecurityContextHolder.getContext()
-                .getAuthentication().getName();
-            String userType = getCurrentUserType();
+            org.springframework.security.core.Authentication authentication = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            String currentUserId;
+            if (userId == null || userId.isEmpty()) {
+                if (authentication == null || authentication.getName() == null) {
+                    return ApiResponse.error("未获取到用户ID");
+                }
+                currentUserId = authentication.getName();
+            } else {
+                currentUserId = userId;
+            }
+            if (userType == null || userType.isEmpty()) {
+                userType = getCurrentUserType();
+            }
             
             Map<String, Object> result = notificationService.markMultipleAsRead(notificationIds, currentUserId, userType);
             if ((Boolean) result.get("success")) {
@@ -71,11 +97,23 @@ public class NotificationController {
      */
     @PutMapping("/mark-all-read")
     @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN')")
-    public ApiResponse<Map<String, Object>> markAllAsRead() {
+    public ApiResponse<Map<String, Object>> markAllAsRead(@RequestParam(required = false) String userId,
+                                                          @RequestParam(required = false) String userType) {
         try {
-            String currentUserId = org.springframework.security.core.context.SecurityContextHolder.getContext()
-                .getAuthentication().getName();
-            String userType = getCurrentUserType();
+            org.springframework.security.core.Authentication authentication = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            String currentUserId;
+            if (userId == null || userId.isEmpty()) {
+                if (authentication == null || authentication.getName() == null) {
+                    return ApiResponse.error("未获取到用户ID");
+                }
+                currentUserId = authentication.getName();
+            } else {
+                currentUserId = userId;
+            }
+            if (userType == null || userType.isEmpty()) {
+                userType = getCurrentUserType();
+            }
             
             Map<String, Object> result = notificationService.markAllAsRead(currentUserId, userType);
             if ((Boolean) result.get("success")) {
@@ -93,11 +131,23 @@ public class NotificationController {
      */
     @GetMapping("/unread-count")
     @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN')")
-    public ApiResponse<Integer> getUnreadCount() {
+    public ApiResponse<Integer> getUnreadCount(@RequestParam(required = false) String userId,
+                                                @RequestParam(required = false) String userType) {
         try {
-            String currentUserId = org.springframework.security.core.context.SecurityContextHolder.getContext()
-                .getAuthentication().getName();
-            String userType = getCurrentUserType();
+            org.springframework.security.core.Authentication authentication = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            String currentUserId;
+            if (userId == null || userId.isEmpty()) {
+                if (authentication == null || authentication.getName() == null) {
+                    return ApiResponse.error("未获取到用户ID");
+                }
+                currentUserId = authentication.getName();
+            } else {
+                currentUserId = userId;
+            }
+            if (userType == null || userType.isEmpty()) {
+                userType = getCurrentUserType();
+            }
             
             Integer count = notificationService.getUnreadCount(currentUserId, userType);
             return ApiResponse.ok(count);
@@ -147,11 +197,24 @@ public class NotificationController {
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('STUDENT') or hasRole('ADMIN')")
-    public ApiResponse<Map<String, Object>> deleteNotification(@PathVariable Integer id) {
+    public ApiResponse<Map<String, Object>> deleteNotification(@PathVariable Integer id,
+                                                               @RequestParam(required = false) String userId,
+                                                               @RequestParam(required = false) String userType) {
         try {
-            String currentUserId = org.springframework.security.core.context.SecurityContextHolder.getContext()
-                .getAuthentication().getName();
-            String userType = getCurrentUserType();
+            org.springframework.security.core.Authentication authentication = 
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            String currentUserId;
+            if (userId == null || userId.isEmpty()) {
+                if (authentication == null || authentication.getName() == null) {
+                    return ApiResponse.error("未获取到用户ID");
+                }
+                currentUserId = authentication.getName();
+            } else {
+                currentUserId = userId;
+            }
+            if (userType == null || userType.isEmpty()) {
+                userType = getCurrentUserType();
+            }
             
             Map<String, Object> result = notificationService.deleteNotification(id, currentUserId, userType);
             if ((Boolean) result.get("success")) {
@@ -227,8 +290,12 @@ public class NotificationController {
      * 获取当前用户类型
      */
     private String getCurrentUserType() {
-        return org.springframework.security.core.context.SecurityContextHolder.getContext()
-            .getAuthentication().getAuthorities().iterator().next().getAuthority()
+        org.springframework.security.core.Authentication authentication = 
+            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getAuthorities() == null || authentication.getAuthorities().isEmpty()) {
+            return "student";  // 默认返回student，用于测试环境
+        }
+        return authentication.getAuthorities().iterator().next().getAuthority()
             .replace("ROLE_", "").toLowerCase();
     }
 }

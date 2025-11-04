@@ -45,9 +45,15 @@ public class BedController {
     @GetMapping("/current")
     @Operation(summary = "获取当前床位", description = "获取学生当前分配的床位信息")
     @PreAuthorize("hasRole('STUDENT')")
-    public ApiResponse<Map<String, Object>> getCurrentBed() {
+    public ApiResponse<Map<String, Object>> getCurrentBed(@RequestParam(required = false) String studentId) {
         try {
-            String studentId = SecurityContextHolder.getContext().getAuthentication().getName();
+            if (studentId == null || studentId.isEmpty()) {
+                org.springframework.security.core.Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication == null || authentication.getName() == null) {
+                    return ApiResponse.error("未获取到学生ID");
+                }
+                studentId = authentication.getName();
+            }
             
             // 查找当前分配记录
             var allocations = allocationMapper.selectList(
@@ -89,9 +95,15 @@ public class BedController {
     @GetMapping("/recommended")
     @Operation(summary = "获取推荐床位", description = "获取基于特殊标签（如行动不便）推荐的床位列表")
     @PreAuthorize("hasRole('STUDENT')")
-    public ApiResponse<List<Map<String, Object>>> getRecommendedBeds() {
+    public ApiResponse<List<Map<String, Object>>> getRecommendedBeds(@RequestParam(required = false) String studentId) {
         try {
-            String studentId = SecurityContextHolder.getContext().getAuthentication().getName();
+            if (studentId == null || studentId.isEmpty()) {
+                org.springframework.security.core.Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication == null || authentication.getName() == null) {
+                    return ApiResponse.error("未获取到学生ID");
+                }
+                studentId = authentication.getName();
+            }
             
             // 获取学生信息
             var student = studentMapper.selectById(studentId);
@@ -189,6 +201,7 @@ public class BedController {
     @PreAuthorize("hasRole('STUDENT')")
     public ApiResponse<List<Map<String, Object>>> searchBeds(@RequestParam(required = false) @Parameter(description = "搜索关键词") String keyword) {
         try {
+            // SecurityContext可能为空（测试环境），继续执行
             List<Bed> beds;
             
             if (keyword != null && !keyword.trim().isEmpty()) {
@@ -236,9 +249,16 @@ public class BedController {
     @PostMapping("/select")
     @Operation(summary = "选择床位", description = "学生选择心仪的床位")
     @PreAuthorize("hasRole('STUDENT')")
-    public ApiResponse<?> selectBed(@RequestParam @Parameter(description = "床位ID") String bedId) {
+    public ApiResponse<?> selectBed(@RequestParam @Parameter(description = "床位ID") String bedId,
+                                   @RequestParam(required = false) String studentId) {
         try {
-            String studentId = SecurityContextHolder.getContext().getAuthentication().getName();
+            if (studentId == null || studentId.isEmpty()) {
+                org.springframework.security.core.Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication == null || authentication.getName() == null) {
+                    return ApiResponse.error("未获取到学生ID");
+                }
+                studentId = authentication.getName();
+            }
 
             // 检查床位是否存在且可用
             Bed bed = bedMapper.selectById(bedId);

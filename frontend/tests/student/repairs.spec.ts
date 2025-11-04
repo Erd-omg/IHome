@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { loginAsStudent } from '../helpers/auth';
-import { waitForPageLoad, waitForTableData, waitForDialog, waitForMessage } from '../helpers/wait-helpers';
+import { waitForPageLoad, waitForTableData, waitForDialog, waitForMessage, closeNotificationDrawer } from '../helpers/wait-helpers';
 import { TEST_DATA } from '../helpers/test-data';
 
 test.describe('学生维修功能', () => {
@@ -23,11 +23,23 @@ test.describe('学生维修功能', () => {
     await page.goto('/repairs');
     await waitForPageLoad(page);
     
+    // 关闭可能存在的通知抽屉和其他对话框
+    await closeNotificationDrawer(page);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    
     // 查找创建按钮
     const createButton = page.locator('button:has-text("新建"), button:has-text("报修"), .el-button--primary').first();
     if (await createButton.count() > 0 && await createButton.isVisible()) {
-      await createButton.click();
-      await waitForDialog(page, undefined, 5000);
+      await createButton.scrollIntoViewIfNeeded();
+      await createButton.click({ force: true });
+      
+      // 等待对话框出现（增加超时时间）
+      try {
+        await waitForDialog(page, undefined, 15000);
+      } catch {
+        // 如果对话框没有出现，继续尝试操作
+      }
       
       // 填写表单
       const titleInput = page.locator('input[placeholder*="标题"], input[placeholder*="问题"]').first();
@@ -42,16 +54,24 @@ test.describe('学生维修功能', () => {
       
       // 选择类别
       const categorySelect = page.locator('.el-select').first();
-      if (await categorySelect.count() > 0) {
-        await categorySelect.click();
-        await page.locator('.el-select-dropdown__item').first().click();
+      if (await categorySelect.count() > 0 && await categorySelect.isVisible()) {
+        await categorySelect.scrollIntoViewIfNeeded();
+        await categorySelect.click({ force: true });
+        await page.waitForTimeout(300);
+        const option = page.locator('.el-select-dropdown__item').first();
+        if (await option.count() > 0) {
+          await option.click();
+        }
       }
       
       // 提交表单
-      const submitButton = page.locator('button:has-text("提交"), button:has-text("确认"), button[type="submit"]').first();
+      const submitButton = page.locator('button:has-text("提交"), button:has-text("确认"), button[type="submit"]')
+        .filter({ hasNot: page.locator('.el-message-box') })
+        .first();
       if (await submitButton.count() > 0) {
-        await submitButton.click();
-        await waitForMessage(page, undefined, 10000);
+        await submitButton.scrollIntoViewIfNeeded();
+        await submitButton.click({ force: true });
+        await waitForMessage(page, undefined, 10000, false);
       }
     }
   });

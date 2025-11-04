@@ -31,6 +31,8 @@ public class ElectricityService {
     @Autowired
     private StudentMapper studentMapper;
     
+    @Autowired
+    private DormitoryAllocationMapper allocationMapper;
     
     @Autowired
     private NotificationService notificationService;
@@ -352,7 +354,7 @@ public class ElectricityService {
             result.put("overdueBills", overdueCount);
             result.put("monthlyTotal", monthlyTotal);
             result.put("monthlyPaid", monthlyPaid);
-            result.put("paymentRate", allBills.isEmpty() ? 0 : 
+            result.put("paymentRate", (allBills.isEmpty() || monthlyTotal.compareTo(BigDecimal.ZERO) == 0) ? 0 : 
                     monthlyPaid.divide(monthlyTotal, 4, java.math.RoundingMode.HALF_UP).multiply(new BigDecimal("100")));
             
         } catch (Exception e) {
@@ -409,9 +411,8 @@ public class ElectricityService {
      * 获取学生当前分配
      */
     private DormitoryAllocation getCurrentAllocation(String studentId) {
-        // 这里需要根据实际的分配逻辑来获取学生当前的宿舍分配
-        // 暂时返回null，实际实现时需要查询分配表
-        return null;
+        // 查询学生当前的宿舍分配（状态为"在住"的分配）
+        return allocationMapper.selectByStudentId(studentId);
     }
 
     /**

@@ -20,6 +20,7 @@ import java.util.Collections;
  * 负责从请求头中提取JWT token并进行验证
  */
 @Component
+@org.springframework.context.annotation.Profile("!test")
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;

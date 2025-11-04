@@ -4,15 +4,21 @@ import { waitForPageLoad, waitForMessage } from '../helpers/wait-helpers';
 
 test.describe('管理员登录功能', () => {
   test.beforeEach(async ({ page }) => {
+    // 清除localStorage，确保每个测试都有干净的状态
     await page.goto('/login');
+    await page.evaluate(() => {
+      localStorage.clear();
+    });
     await waitForPageLoad(page);
   });
 
   test('应该能够成功登录为管理员', async ({ page }) => {
     await loginAsAdmin(page);
     
-    // 验证登录后跳转到管理员仪表板
-    await expect(page).toHaveURL(/^\/admin\/dashboard/);
+    // 验证登录后跳转到管理员仪表板（等待URL更新）
+    await page.waitForURL(/\/admin\/dashboard/, { timeout: 20000 });
+    // 使用不包含^的匹配，因为toHaveURL会匹配完整URL的路径部分
+    await expect(page).toHaveURL(/\/admin\/dashboard/);
     
     // 验证token已保存
     const token = await page.evaluate(() => localStorage.getItem('token'));

@@ -6,12 +6,14 @@ public class ApiResponse<T> {
     private Integer code;
     private String message;
     private T data;
+    private Boolean success;
 
     // 添加了全参构造函数
     public ApiResponse(Integer code, String message, T data) {
         this.code = code;
         this.message = message;
         this.data = data;
+        this.success = (code != null && code == 0);
     }
 
     // 添加了无参构造函数
@@ -56,5 +58,13 @@ public class ApiResponse<T> {
 
     public void setData(T data) {
         this.data = data;
+    }
+
+    public Boolean getSuccess() {
+        return success;
+    }
+
+    public void setSuccess(Boolean success) {
+        this.success = success;
     }
 }

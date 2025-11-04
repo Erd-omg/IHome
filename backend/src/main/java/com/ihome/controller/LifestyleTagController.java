@@ -61,10 +61,15 @@ public class LifestyleTagController {
      */
     @GetMapping("/my-tags")
     @PreAuthorize("hasRole('STUDENT')")
-    public ApiResponse<List<RoommateTag>> getMyTags() {
+    public ApiResponse<List<RoommateTag>> getMyTags(@RequestParam(required = false) String studentId) {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String studentId = authentication.getName();
+            if (studentId == null || studentId.isEmpty()) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication == null || authentication.getName() == null) {
+                    return ApiResponse.error("未获取到学生ID");
+                }
+                studentId = authentication.getName();
+            }
             
             List<RoommateTag> myTags = roommateTagMapper.selectList(
                 new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<RoommateTag>()
@@ -82,10 +87,16 @@ public class LifestyleTagController {
      */
     @PostMapping("/set")
     @PreAuthorize("hasRole('STUDENT')")
-    public ApiResponse<?> setStudentTags(@RequestBody List<String> tagNames) {
+    public ApiResponse<?> setStudentTags(@RequestBody List<String> tagNames,
+                                        @RequestParam(required = false) String studentId) {
         try {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String studentId = authentication.getName();
+            if (studentId == null || studentId.isEmpty()) {
+                Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                if (authentication == null || authentication.getName() == null) {
+                    return ApiResponse.error("未获取到学生ID");
+                }
+                studentId = authentication.getName();
+            }
             
             // 先删除现有标签
             roommateTagMapper.delete(

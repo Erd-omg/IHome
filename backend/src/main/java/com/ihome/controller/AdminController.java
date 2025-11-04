@@ -982,6 +982,11 @@ public class AdminController {
     @PostMapping("/students")
     public ApiResponse<Map<String, Object>> createStudent(@RequestBody Student student) {
         try {
+            // 检查学号是否已存在
+            if (studentMapper.selectById(student.getId()) != null) {
+                return ApiResponse.error("学号已存在");
+            }
+            
             // 密码加密
             student.setPassword(passwordEncoder.encode(student.getPassword()));
             int result = studentMapper.insert(student);

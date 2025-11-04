@@ -13,8 +13,8 @@ test.describe('管理员交换管理', () => {
     // 等待表格加载
     await waitForTableData(page, '.el-table', 10000);
     
-    // 验证表格存在
-    await expect(page.locator('.el-table, table')).toBeVisible();
+    // 验证表格存在（使用更具体的选择器避免匹配到日期选择器的table）
+    await expect(page.locator('.el-table').first()).toBeVisible();
   });
 
   test('应该能够审核交换申请', async ({ page }) => {
