@@ -169,61 +169,11 @@ docker compose up -d
 
 ### 数据库初始化说明（核心）
 
-1) 文件说明
-- `database-init.sql`: 仅创建数据库结构与必要默认数据（生产环境推荐）
-- `database-init-with-data.sql`: 创建结构并插入测试数据（开发/测试推荐）
-
-2) 默认配置
-- 数据库名: `ihome`
-- 字符集/排序: `utf8mb4 / utf8mb4_unicode_ci`
-- 引擎: `InnoDB`
-
-3) 连接配置示例（backend/src/main/resources/application.yml）
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://127.0.0.1:3306/ihome?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true
-    username: root
-    password: your_password
-    driver-class-name: com.mysql.cj.jdbc.Driver
-```
-
-4) 测试数据概览（使用 with-data 脚本）
-- 管理员账号：`admin001/admin002`（默认密码：password）
-- 学生账号：`2024001` ~ `2024010`（默认密码：password）
-- 宿舍/床位：示例宿舍与床位完整生成
-- 典型业务数据：部分分配记录、缴费记录、维修工单、系统通知
-
-5) 数据库结构（核心表）
-- buildings / dormitories / beds
-- students / admins
-- questionnaire_answers / roommate_tags
-- payment_records / repair_orders / repair_feedback
-- dormitory_allocations / dormitory_switches
-- notifications / operation_logs
-- allocation_feedback / algorithm_weights
-- electricity_bills / electricity_reminders / electricity_payments
-
-6) 注意事项
-- 使用 `utf8mb4` 字符集
-- 外键均已设置级联删除/更新
-- 已为常用查询字段创建索引
-- 密码字段存储为 BCrypt 散列
-
-7) 重置数据库（可选）
-```bash
-# 备份（可选）
-mysqldump -u root -p ihome > backup.sql
-
-# 删除并重建（进入 mysql 命令行）
-DROP DATABASE IF EXISTS ihome;
-source backend/src/main/resources/database-init.sql;
-```
-
-8) 常见问题
-- Unknown database 'ihome'：脚本中已创建数据库；如存在旧库建议先 DROP
-- 初始化后如何验证：`USE ihome; SHOW TABLES;`
-- 忘记管理员密码：直接更新数据库中管理员记录的 password（BCrypt 后的值）
+- 默认数据库名：`ihome`（字符集 `utf8mb4`）
+- 本地开发直接执行：`database-init-with-data.sql`（含测试数据）
+- 提交的 `application.yml` 已使用占位符密码 `your_password`，请在本地替换为实际密码
+- 完整指南（含验证、FAQ、重置数据库等）：
+  - 见 `backend/src/main/resources/DB-INITIALIZATION.md`
 
 #### 3. 配置后端
 
