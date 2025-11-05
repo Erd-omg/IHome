@@ -55,11 +55,11 @@ spring:
   datasource:
     url: jdbc:mysql://127.0.0.1:3306/ihome?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=utf8&autoReconnect=true
     username: root
-    password: your_password
+    password: [your_password]
     driver-class-name: com.mysql.cj.jdbc.Driver
 ```
 
-> 重要：提交到仓库的 `application.yml` 使用占位符 `your_password`，请在本地替换为真实密码；含敏感信息的 `application-dev.yml` 已被 `.gitignore` 忽略。
+> 重要：提交到仓库的 `application.yml` 使用占位符 `your_password`，请在本地替换为真实密码。
 
 ## 4. 测试数据概览
 

@@ -136,7 +136,26 @@ git clone https://github.com/Erd-omg/IHome.git
 cd IHome
 ```
 
-#### 2. 数据库初始化
+#### 2. 配置后端
+
+编辑 `backend/src/main/resources/application.yml`，替换为实际密码:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/ihome?useSSL=false&serverTimezone=UTC
+    username: root
+    password: [your_password]
+```
+
+#### 3. 数据库初始化
+
+- 默认数据库名：`ihome`（字符集 `utf8mb4`）
+- 生产环境执行：`database-init.sql`（仅创建数据库结构与必要默认数据）
+- 开发环境执行：`database-init-with-data.sql`（含测试数据）
+- 配置文件 `application.yml` 已使用占位符密码 `your_password`，请在本地替换为实际密码
+- 完整指南（含验证、FAQ、重置数据库等）：
+  - 见 `backend/src/main/resources/DB-INITIALIZATION.md`
 
 **方式1: 使用MySQL命令行**
 
@@ -166,26 +185,6 @@ docker compose up -d
 ```
 
 > 说明：`docker-compose.yml` 已挂载 `backend/src/main/resources/database-init.sql` 和 `database-init-with-data.sql` 到容器的初始化目录。
-
-### 数据库初始化说明（核心）
-
-- 默认数据库名：`ihome`（字符集 `utf8mb4`）
-- 本地开发直接执行：`database-init-with-data.sql`（含测试数据）
-- 提交的 `application.yml` 已使用占位符密码 `your_password`，请在本地替换为实际密码
-- 完整指南（含验证、FAQ、重置数据库等）：
-  - 见 `backend/src/main/resources/DB-INITIALIZATION.md`
-
-#### 3. 配置后端
-
-编辑 `backend/src/main/resources/application.yml`:
-
-```yaml
-spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/ihome?useSSL=false&serverTimezone=UTC
-    username: root
-    password: your_password
-```
 
 #### 4. 启动后端
 
@@ -244,18 +243,27 @@ npm run dev
 IHome/
 ├── backend/                    # 后端Spring Boot项目
 │   ├── src/main/java/          # Java源代码
-│   ├── src/main/resources/     # 配置文件
-│   │   ├── application.yml     # 应用配置
-│   │   ├── database-init.sql  # 数据库初始化脚本
-│   │   └── database-init-with-data.sql  # 含测试数据
+│   ├── src/main/resources/     # 配置与数据库脚本
+│   │   ├── application.yml               # 应用配置（本地需填入实际密码）
+│   │   ├── DB-INITIALIZATION.md          # 数据库初始化完整指南（新）
+│   │   ├── database-init.sql             # 结构脚本（生产/空数据）
+│   │   ├── database-init-with-data.sql   # 结构+测试数据脚本（开发/测试）
+│   │   └── schema-test.sql               # 测试环境结构脚本
 │   └── pom.xml                # Maven配置
 ├── frontend/                   # 前端Vue项目
-│   ├── src/                   # Vue源代码
-│   │   ├── api/               # API接口
-│   │   ├── views/             # 页面组件
+│   ├── src/                    # Vue源代码
+│   │   ├── api/                # API接口
+│   │   ├── views/              # 页面组件
 │   │   ├── components/         # 公共组件
-│   │   └── router/            # 路由配置
-│   └── package.json           # NPM配置
+│   │   └── router/             # 路由配置
+│   ├── tests/                  # 前端端到端测试（Playwright）
+│   │   ├── helpers/            # 测试辅助工具与等待封装
+│   │   ├── admin/              # 管理员端用例
+│   │   ├── student/            # 学生端用例
+│   │   ├── e2e/                # 端到端完整流程
+│   │   └── global-setup.ts     # 全局测试启动检查
+│   ├── playwright.config.ts    # Playwright 配置（含多浏览器）
+│   └── package.json            # NPM配置
 └── README.md                  # 项目说明（本文档）
 ```
 
