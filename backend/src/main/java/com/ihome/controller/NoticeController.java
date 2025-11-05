@@ -37,8 +37,8 @@ public class NoticeController {
         try {
             // 如果没有指定接收者，返回系统公告
             if (receiverId == null || receiverType == null) {
-                // 查询receiver_id='ALL'且receiver_type='system'的系统公告
-                List<Notification> notices = notificationService.getNotificationsByType("ALL", "system", "system");
+                // 查询系统公告：receiver_id=ALL（大小写不敏感），type=system
+                List<Notification> notices = notificationService.getNotificationsByType("ALL", "all", "system");
                 
                 // 应用搜索过滤
                 if (keyword != null && !keyword.trim().isEmpty()) {

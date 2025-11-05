@@ -53,37 +53,43 @@ public class StudentController {
     public ApiResponse<JwtResponse> login(@RequestBody @Valid LoginRequest req) {
         try {
             System.out.println("Login attempt for student: " + req.getId());
-            
+
             Student s = studentMapper.selectById(req.getId());
             if (s == null) {
                 System.err.println("Student not found: " + req.getId());
                 return ApiResponse.error("学号或密码错误");
             }
-            
+
             System.out.println("Student found: " + s.getName());
-            System.out.println("Password hash: " + s.getPassword().substring(0, Math.min(30, s.getPassword().length())) + "...");
-            
+
+            // 防御性检查：密码为空时直接返回统一错误，避免空指针
+            if (s.getPassword() == null || s.getPassword().isEmpty()) {
+                System.err.println("Student password is empty for id: " + s.getId());
+                return ApiResponse.error("学号或密码错误");
+            }
+
             boolean passwordMatch = passwordEncoder.matches(req.getPassword(), s.getPassword());
             System.out.println("Password match: " + passwordMatch);
-            
+
             if (!passwordMatch) {
                 return ApiResponse.error("学号或密码错误");
             }
-            
+
             // 生成JWT token
             String accessToken = jwtUtils.generateAccessToken(s.getId(), "student");
             String refreshToken = jwtUtils.generateRefreshToken(s.getId(), "student");
-            
+
             // 清空密码信息
             s.setPassword(null);
-            
+
             JwtResponse jwtResponse = new JwtResponse(accessToken, refreshToken, 600L, s);
             System.out.println("Login successful for student: " + s.getId());
             return ApiResponse.ok(jwtResponse);
         } catch (Exception e) {
-            System.err.println("Login error: " + e.getMessage());
+            // 打印详细日志，但对前端返回统一的提示，避免出现 "登录失败: null"
+            System.err.println("Login error: " + (e.getMessage() != null ? e.getMessage() : e.getClass().getName()));
             e.printStackTrace();
-            return ApiResponse.error("登录失败: " + e.getMessage());
+            return ApiResponse.error("登录失败");
         }
     }
 

@@ -230,9 +230,9 @@ public class NotificationService {
      * 根据类型获取通知
      */
     public List<Notification> getNotificationsByType(String receiverId, String receiverType, String type) {
-        // 如果是系统公告，使用特殊查询方法
-        if ("ALL".equals(receiverId) && "system".equals(receiverType)) {
-            return notificationMapper.selectSystemNotifications(receiverType, type);
+        // 系统公告统一走系统公告查询（忽略 receiverType 大小写差异）
+        if (receiverId != null && receiverId.equalsIgnoreCase("ALL")) {
+            return notificationMapper.selectSystemNotifications(type);
         }
         return notificationMapper.selectByType(receiverId, receiverType, type);
     }
@@ -241,7 +241,7 @@ public class NotificationService {
      * 获取系统公告
      */
     public List<Notification> getSystemNotifications(String type) {
-        return notificationMapper.selectSystemNotifications("system", type);
+        return notificationMapper.selectSystemNotifications(type);
     }
 
     /**
